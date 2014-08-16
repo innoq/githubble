@@ -1,3 +1,9 @@
 target
 nbproject/private/private.xml
 nbproject/private/private.properties
+/bin
+.cache
+.classpath
+.project
+.settings/
+logs/
