@@ -6,7 +6,7 @@ import play.api.mvc._
 import play.api.libs.json.Json
 
 object Application extends Controller {
-  val AccpetingApiJson = Accepting("application/vnd.api+json/mp3")
+  val AccpetingApiJson = Accepting("application/vnd.api+json")
   def home = Action { implicit request =>
     
     render {
