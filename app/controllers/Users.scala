@@ -8,16 +8,17 @@ import play.Logger
 
 object Users extends Controller {
 
- val json = """  {
+ val json = """ {
     "name": "innoQ",
+    "class": "root",
     "children": [
         {
             "name": "phaus",
             "size": 100000,
-            "class" : "avatar",
+            "class": "avatar",
             "children": [
                 {
-                    "name": "cluster",
+                    "name": "repositories",
                     "children": [
                         {
                             "name": "AgglomerativeCluster",
@@ -42,10 +43,10 @@ object Users extends Controller {
         {
             "name": "martinei",
             "size": 100000,
-            "class" : "avatar",
+            "class": "avatar",
             "children": [
                 {
-                    "name": "cluster",
+                    "name": "repositories",
                     "children": [
                         {
                             "name": "AgglomerativeCluster",
@@ -59,6 +60,38 @@ object Users extends Controller {
                             "name": "HierarchicalCluster",
                             "size": 6714
                         },
+                        {
+                            "name": "MergeEdge",
+                            "size": 743
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "FND",
+            "size": 100000,
+            "class": "avatar",
+            "children": [
+                {
+                    "name": "repositories",
+                    "children": [
+                        {
+                            "name": "AgglomerativeCluster",
+                            "size": 200000
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "rstrangh",
+            "size": 100000,
+            "class": "avatar",
+            "children": [
+                {
+                    "name": "repositories",
+                    "children": [
                         {
                             "name": "MergeEdge",
                             "size": 743
