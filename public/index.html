@@ -45,7 +45,6 @@
         svg.append("defs").attr("id", "defs");
 
         var link = svg.selectAll(".link"),
-
                 node = svg.selectAll(".node"),
                 pattern = d3.select("defs").selectAll(".pattern");
         d3.json("/users/martinei.json", function(error, json) {
@@ -57,7 +56,7 @@
 
         function update() {
             var nodes = flatten(root),
-                links = d3.layout.tree().links(nodes);
+                    links = d3.layout.tree().links(nodes);
 
             // Restart the force layout.
             force
@@ -72,9 +71,42 @@
 
             link.exit().remove();
 
-            link.enter().insert("line", ".node")
-                    .attr("class", "link");
+            link.enter()
+                .insert("line", ".node")
+                .attr("class", "link");
+            
+            pattern = pattern.data(nodes.filter(function(d) {
+                return d.class === "avatar";
+            }));
+            pattern.exit().remove();
 
+            pattern.enter()
+                    .append("pattern")
+                    .attr("class", "pattern")
+                    .attr("id", function(d) {
+                        if (d.class === "avatar") {
+                            return "images-" + d.name;
+                        } else {
+                            return "";
+                        }
+                    })
+                    .attr("x", "0")
+                    .attr("y", "0")
+                    .attr("patternUnits", "userSpaceOnUse")
+                    .attr("height", "64")
+                    .attr("width", "64")
+                    .append("image")
+                    .attr("x", "0")
+                    .attr("y", "0")
+                    .attr("width", "64")
+                    .attr("height", "64")
+                    .attr("xlink:href", function(d) {
+                        if (d.class === "avatar") {
+                            return "images/" + d.name + ".jpeg";
+                        } else {
+                            return "";
+                        }
+                    });
             // Update nodes.
             node = node.data(nodes, function(d) {
                 //console.log(JSON.stringify(d));
@@ -100,50 +132,31 @@
 
                     }).attr("id", function(d) {
                         return d.name;
-            });
+                    })
+                    .attr("transform", function(d) {
+                        return "translate(-32 , -32)";
+                    })
+                    .attr("cx", "32")
+                    .attr("cy", "32")
+                    .attr("fill", function(d) {
+                        if (d.class === "avatar") {
+                            return "url(#images-" + d.name + ")";
+                        } else {
+                            return  color(d);
+                        }
+                    });
 
             nodeEnter.append("text")
-                .attr("dy", ".35em")
-                .text(function(d) {
-                    return d.name;
-                });
-           
-            pattern = pattern.data(nodes.filter(function(d){return d.class === "avatar";}));
-            pattern.exit().remove();
-
-            var patternEnter = pattern.enter()
-                .append("pattern")
-                .attr("class", "pattern")
-                .attr("id", function(d) {
-                    if (d.class === "avatar") {
-                        return "images-" + d.name;
-                    } else {
-                        return "";
-                    }
-                })
-                .attr("x", "0")
-                .attr("y", "0")
-                .attr("patternUnits", "userSpaceOnUse")
-                .attr("height", "100")
-                .attr("width", "100")
-                .append("image")
-                .attr("x", "0")
-                .attr("y", "0")
-                .attr("xlink:href", function(d) {
-                    if (d.class === "avatar") {
-                        return "images/" + d.name + ".jpeg";
-                    } else {
-                        return "";
-                    }
-                });
-
-            node.select("circle").style("fill", function(d) {
-                if (d.class === "avatar") {
-                    return "url(#images-" + d.name + ")";
-                } else {
-                    return  color(d);
-                }
-            });
+                    .attr("dy", ".35em")
+                    .text(function(d) {
+                        return d.name;
+                    }).attr("transform", function(d) {
+                        if (d.class === "avatar") {
+                            return "translate(32 , 32)";                        
+                        } else {
+                            return "";
+                        }
+                    });
         }
 
         function tick() {
@@ -187,7 +200,7 @@
 
         // Returns a list of all nodes under the root.
         function flatten(root) {
-            
+
             var nodes = [], i = 0;
 
             function recurse(node) {
