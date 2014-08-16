@@ -29,7 +29,7 @@ object Users extends Controller {
   } ]
 }, {
   "name" : "async-http-client",
-  "id" : "repo_6756561"
+  "id" : "repo_6756561",
    "class" : "repo"
 } ]
  """   
@@ -37,39 +37,50 @@ object Users extends Controller {
    
    def user(name : String) = Action.async {
         // temporary canned repsonse
-       Future.successful(Ok(json))
+//       Future.successful(Ok(json))
        
-//    GitHub.getUser(name).flatMap { gitHubUser =>
-//            
-//      val completeGitHubUser = gitHubUser.embedd ("repos_url")
-//      
-//      completeGitHubUser.map {
-//    	  res =>
-////    	   Ok (res.json )
-//    	  Ok (gitHubUserToOutput (res))
-//    	 
-//      }
+    GitHub.getUser(name).flatMap { gitHubUser =>
+            
+      val completeGitHubUser = gitHubUser.embedd ("repos_url")
+      
+      completeGitHubUser.map {
+    	  res =>
+//    	   Ok (res.json )
+    	  Ok (gitHubUserToOutput (res))
+    	 
+      }
      
-   //}
+   }
  }
  
  
+  def copyField (name : String) : Reads[JsObject] = {
+     (__ \  name ).json.copyFrom( (__ \ name).json.pick ) 
+  }
+
+  def mapId(prefix: String): Reads[JsObject] = {
+    (__ \ 'id).json.copyFrom((__ \ 'id).json.pick.map {
+      case JsNumber(s) => JsString(s"${prefix}_$s")
+      case _@ other => other
+
+    })
+  }
+  
+  def put (field : String, value : String) : Reads[JsObject] = {
+		  (__ \  field ).json.put (JsString(value))    
+  }
 
   def gitHubUserToOutput ( gitHubUser : GitHubResource) : JsValue={
            val jsonTransformer =
              (
-             (__ \  'login ).json.copyFrom( (__ \ 'login).json.pick ) and
-             (__ \  'name ).json.copyFrom( (__ \ 'name).json.pick ) and
-             (__ \  'id).json.copyFrom ( (__ \ 'id).json.pick.map {
-               case JsNumber (s) => JsString (s"user_$s")
-               case _ @ other  => other 
-               
-             } ) and
-             (__ \ 'class).json.put (JsString("user")) and
-             (__ \ 'avatar ).json.copyFrom( (__ \ 'avatar_url).json.pick.map { 
-               case JsString (s) => JsString (s+"&s=64")
-               case _ @ other  => other 
-             }) 
+               copyField("login") and
+               copyField ("name") and
+               mapId("user") and
+               put ("class", "user") and               
+               (__ \ 'avatar ).json.copyFrom( (__ \ 'avatar_url).json.pick.map { 
+               	case JsString (s) => JsString (s+"&s=64")
+               	case _ @ other  => other 
+               }) 
              ) reduce
              
             
@@ -85,6 +96,7 @@ object Users extends Controller {
              val repoTransformer = 
                (
 	               (__ \ 'name).json.copyFrom( (__ \ 'name).json.pick)) and
+	               (__ \ 'class).json.put (JsString("repo")) and
 	               (__ \ 'id).json.copyFrom( (__ \ 'id).json.pick.map {
 		               case JsNumber (s) => JsString (s"repo_$s")
 		               case _ @ other  => other                                   
@@ -99,7 +111,7 @@ object Users extends Controller {
            val updateUser = (__).json.update ( (__ \ "repositories").json.put(JsArray (mappedValue)))
            // mappedValue
             // We must fetch the lis of repositories! 
-            JsArray (user.transform(updateUser).get +: mappedValue)           
+            user.transform(updateUser).get           
   }
   
    

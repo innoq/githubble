@@ -146,60 +146,37 @@ class UsersSpec extends PlaySpec  {
       val result = Users.gitHubUserToOutput(GitHubResource(gitHubJson ) )
       System.out.println("Result is: " + Json.prettyPrint(result))
       // mus be an array
-      val array = result.as[JsArray]
+
       //[{"login":"martinei","name":"Martin Eigenbrodt"}]
       
-      (result(0)\"login").as[String]  must equal ("martinei")
-      (result(0)\"name").as[String]  must equal ("Martin Eigenbrodt")
-      (result(0)\"class").as[String] must equal ("user")
-      (result(0)\"id").as[String] must equal ("user_795323")
-      
+      (result \ "login").as[String]  must equal ("martinei")
+      (result \ "name").as[String]  must equal ("Martin Eigenbrodt")
+      (result \ "class").as[String] must equal ("user")
+      (result \ "id").as[String] must equal ("user_795323")
+
+      val embedded_repos = result\ "repositories"
+                    
+      (embedded_repos(0)\"id").as[String]  must equal ("repo_6756561")
+      (embedded_repos(0)\"class").as[String]  must equal ("repo")
+      /*
+       * {{
+    "login": "martinei",
+    "name": "Martin Eigenbrodt",
+    "id": "user_795323",
+    "class": "user",
+    "avatar": "https://avatars.githubusercontent.com/u/795323?v=2&s=64",
+    "repositories": [
+        {
+            "name": "async-http-client",
+            "id": "repo_6756561",
+            "class": "repo"
+        }
+    ]
+}       */
     }
   }
   
   
-  "understand Array read" should {
-  
-    //  picking
-    
-    val jsonTransformer = (__ \ 'key2 \ 'key23).json.pick
-    //pick typed  (__ \ 'key2 \ 'key23).json.pick[JsArray] 
-    // copyFrom
-    // update
-    // put
-    // prune
-    
-    
-    val arr = Json.parse ("""
-        [1,2,3,4,5,6,7]        
-        """)
-        
-    
-        
-    
-  }
-  
- /*[
-   {
-       "name": "martinei",
-       "class": "user",
-       "id": "user_23"
-   },
-   {
-       "name": "phl",
-       "class": "user",
-       "id": "user_42",
-       "repositories": [
-           {
-               "id": "repo_3"
-           }
-       ]
-   },
-   {
-       "name": "phl/githubble",
-       "class": "repository",
-       "id": "repo_3"
-   }
-]*/ 
+
   
 }
