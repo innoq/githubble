@@ -7,7 +7,28 @@ import play.api.mvc._
 import play.Logger
 
 object Users extends Controller {
+/*
+  
+  # USER
+  
+  class = "user"
+  name
+  repositories : [{},{},{}]
+  orgs
+  
+  
+  # Repository
+  
+  class = "repository"
+  name
+  user
+  orgs
+  
+  
 
+  
+*/
+  
  val json = """ {
     "name": "innoQ",
     "class": "root",
