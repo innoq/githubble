@@ -10,5 +10,6 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  ws
+  ws,
+ "org.scalatestplus" %% "play" % "1.1.0" % "test"  
 )
