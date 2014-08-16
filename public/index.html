@@ -61,7 +61,7 @@
         var link = svg.selectAll(".link"),
             node = svg.selectAll(".node");
             defs =  svg.append("defs");
-        d3.json("graph.json", function(error, json) {
+        d3.json("/users/martinei.json", function(error, json) {
             root = json;
             update();
         });

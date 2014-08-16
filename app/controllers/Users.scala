@@ -1,4 +1,14 @@
-{
+package controllers
+
+import http.CustomContentType._
+import play.api.mvc.Controller
+import play.api.libs.json.Json
+import play.api.mvc._
+import play.Logger
+
+object Users extends Controller {
+
+ val json = """  {
     "name": "innoQ",
     "children": [
         {
@@ -58,4 +68,11 @@
             ]
         }
     ]
+}"""
+ 
+   
+   def user(name : String) = Action {
+   Logger.info ("Api return user {}",name);
+	 Ok(Json.parse(json))
+ }
 }
