@@ -49,7 +49,7 @@
 			    .attr("height", h);
         	svg.append("defs").attr("id", "defs");
 			var pattern = d3.select("defs").selectAll(".pattern");
-			d3.json("test.json", function(error, graph) {
+			d3.json("/users/martinei.json", function(error, graph) {
 			  	force
 			      .nodes(graph.nodes)
 			      .links(graph.links)
