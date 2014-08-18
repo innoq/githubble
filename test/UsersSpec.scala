@@ -148,30 +148,69 @@ class UsersSpec extends PlaySpec  {
       // mus be an array
 
       //[{"login":"martinei","name":"Martin Eigenbrodt"}]
-      
-      (result \ "login").as[String]  must equal ("martinei")
-      (result \ "name").as[String]  must equal ("Martin Eigenbrodt")
-      (result \ "class").as[String] must equal ("user")
-      (result \ "id").as[String] must equal ("user_795323")
+      // All nodes of the grapd
+      val nodes = (result \ "nodes").as[JsArray]
+      //(nodes(0) \ "login").as[String]  must equal ("martinei")
+      (nodes(0) \ "label").as[String]  must equal ("martinei")
+      (nodes(0) \ "class").as[String] must equal ("user")
+      (nodes(0) \ "id").as[String] must equal ("user_795323")
+      (nodes(0) \ "avatar").as[String] must equal ("https://avatars.githubusercontent.com/u/795323?v=2&s=64")
 
-      val embedded_repos = result\ "repositories"
-                    
-      (embedded_repos(0)\"id").as[String]  must equal ("repo_6756561")
-      (embedded_repos(0)\"class").as[String]  must equal ("repo")
+      // Second Node is expected to be the repository 
+      (nodes(1) \ "id").as[String]  must equal ("repo_6756561")
+      (nodes(1) \ "label").as[String]  must equal ("martinei/async-http-client")
+      (nodes(1) \ "class").as[String] must equal ("repo")
+      
+
+      val links = (result \ "links").as[JsArray]
+      (links(0) \ "class").as[String] must equal("owns")
+      (links(0) \ "source").as[Int] must equal(0)
+      (links(0) \ "target").as[Int] must equal(1)
+      (links(0) \ "value").as[Int] must equal(1)
+// TODO: Check links
+      
       /*
-       * {{
-    "login": "martinei",
-    "name": "Martin Eigenbrodt",
-    "id": "user_795323",
-    "class": "user",
-    "avatar": "https://avatars.githubusercontent.com/u/795323?v=2&s=64",
-    "repositories": [
-        {
-            "name": "async-http-client",
-            "id": "repo_6756561",
-            "class": "repo"
-        }
-    ]
+{
+  "nodes":[
+    {"label":"phaus", "class":"user", "id":"u1", "avatar":"https://avatars.githubusercontent.com/u/346361?v=2&s=64"},
+    {"label":"phaus/agora", "class":"repo", "id":"r1"},
+	{"label":"phaus/aibe", "class":"repo", "id":"r2"},
+	{"label":"phaus/annotate", "class":"repo", "id":"r3"},
+	{"label":"phaus/AQGridView", "class":"repo", "id":"r4"},
+    {"label":"phaus/balancr", "class":"repo", "id":"r5"},
+    {"label":"phaus/Bombbear", "class":"repo", "id":"r6"},
+	{"label":"phaus/ChatLogConverter", "class":"repo", "id":"r7"},
+	{"label":"phaus/contrib", "class":"repo", "id":"r8"},
+	{"label":"phaus/dash", "class":"repo", "id":"r9"},
+    {"label":"phaus/DiabloMiner", "class":"repo", "id":"r10"},
+    {"label":"martinei", "class":"user", "id":"u2", "avatar":"https://avatars.githubusercontent.com/u/795323?v=2&s=64"},
+    {"label":"FND", "class":"user", "id":"u3", "avatar":"https://avatars.githubusercontent.com/u/3515?v=2&s=64"},
+    {"label":"aheusingfeld", "class":"user", "id":"u4", "avatar":"https://avatars.githubusercontent.com/u/534272?v=2&s=64"},
+    {"label":"aheusingfeld.github.io", "class":"repo", "id":"r11"},
+    {"label":"aheusingfeld/aim42", "class":"repo", "id":"r12"},    
+    {"label":"consolving", "class":"orga", "id":"381849", "avatar":"https://avatars.githubusercontent.com/u/3236400?v=2&s=64"},   
+    {"label":"innoQ", "class":"orga", "id":"3236400", "avatar":"https://avatars.githubusercontent.com/u/381849?v=2&s=64"}       
+  ],
+  "links":[
+    {"source":1,"target":0,"value":1, "class":"owns"},
+    {"source":2,"target":0,"value":8, "class":"owns"},
+    {"source":3,"target":0,"value":8, "class":"owns"},
+    {"source":4,"target":0,"value":8, "class":"owns"},
+    {"source":5,"target":0,"value":1, "class":"owns"},
+    {"source":6,"target":0,"value":1, "class":"owns"},
+    {"source":7,"target":0,"value":8, "class":"owns"},
+    {"source":8,"target":0,"value":8, "class":"owns"},
+    {"source":9,"target":0,"value":8, "class":"owns"},
+    {"source":10,"target":0,"value":8, "class":"owns"},
+
+    {"source":11,"target":0,"value":8, "class":"follows"},
+    {"source":12,"target":0,"value":8, "class":"follows"},
+    {"source":13,"target":0,"value":8, "class":"follows"},
+    {"source":14,"target":13,"value":8, "class":"owns"},
+    {"source":15,"target":13,"value":8, "class":"owns"},    
+    {"source":16,"target":0,"value":8, "class":"member"},  
+    {"source":17,"target":0,"value":8, "class":"member"}        
+  ]
 }       */
     }
   }
