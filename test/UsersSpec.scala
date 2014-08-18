@@ -7,10 +7,10 @@ import org.scalatest.junit.JUnitRunner
 import controllers.Users
 import play.api.libs.json.Json
 import play.api.libs.json.JsArray
-import controllers.GitHubResource
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import service.GitHubResource
 
 
 

@@ -2,23 +2,20 @@ package controllers
 
 import http.CustomContentType._
 import play.api.mvc.Controller
-import play.api.libs.json.Json
-import play.api.mvc._
 import play.Logger
 import play.api.libs.ws.WS
+import play.api.mvc._
 import play.api.Play.current
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import Reads.constraints._
-import play.api.libs.json.util._
-import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
+import play.api.libs.functional._
+
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import play.api.libs.functional.Monoid
-import play.api.libs.functional.FunctionalBuilder
-import play.api.libs.functional.Reducer
+import service.GitHub
+import service.GitHubResource
  
 object Users extends Controller {
 
@@ -176,25 +173,4 @@ object Users extends Controller {
                   
 }
 
-case class GitHubResource ( json : JsValue) {
-  
-  def follow (attribute : String)= {
-    WS.url( (json \ attribute).as[String]).get
-  }
-  
-  def embedd (attribute : String): Future[GitHubResource] = {
-    WS.url( (json \ attribute).as[String]).get.map {
-      attributeContent =>
-        val transform = (__).json.update ((__ \ attribute).json.put(attributeContent.json ))
-        GitHubResource (json.transform(transform).get)            
-    }    
-  }
-}
 
-object GitHub {
-  
-	def getUser (name : String )={
-		WS.url(s"https://api.github.com/users/$name").get.map ( js => GitHubResource (js.json))
-	}
-
-}
