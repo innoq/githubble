@@ -1,219 +1,174 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<style>
+<html>
+	<head>
+		<title>GitHubble</title>
+		<meta charset="utf-8">
+		<style>
+		    .node circle {
+		        cursor: pointer;
+		        stroke: #3182bd;
+		        stroke-width: 1.5px;
+		    }
 
-    .node circle {
-        cursor: pointer;
-        stroke: #3182bd;
-        stroke-width: 1.5px;
-    }
+		    .node text {
+		        font: 10px sans-serif;
+		        pointer-events: none;
+		        text-anchor: middle;
+		    }
 
-    .node text {
-        font: 10px sans-serif;
-        pointer-events: none;
-        text-anchor: middle;
-    }
+		    line.link {
+		        fill: none;
+		        stroke: #9ecae1;
+		        stroke-width: 1.5px;
+		    }
+		    .avatar {
+		        border-radius: 20px;
+		    }		
+		</style>
+	</head>
+	<body>
+	    <script src="http://d3js.org/d3.v3.min.js"></script>
+	    <script>
+	    	var h=1024,
+	    		w=1024,
+	    		r=50;
 
-    line.link {
-        fill: none;
-        stroke: #9ecae1;
-        stroke-width: 1.5px;
-    }
-    .avatar {
-        border-radius: 20px;
-    }
-</style>
-<body>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script>
+			var force = d3.layout.force()
+  
+                .charge(-1000)
+                .linkDistance(function(link) {
+     				return link.class === "owns" ? 100 : link.class === "member" ? 300 :500;
+    			})
+                .gravity(0.05)
+			    .size([w, h]);	    
+			var svg = d3.select("body").append("svg")
+			    .attr("width", w)
+			    .attr("height", h);
+        	svg.append("defs").attr("id", "defs");
+			var pattern = d3.select("defs").selectAll(".pattern");
+			d3.json("/users/martinei.json", function(error, graph) {
+			  	force
+			      .nodes(graph.nodes)
+			      .links(graph.links)
+			      .start();	
+				updatePattern(graph.nodes);
+				var link = svg.selectAll(".link")
+					.data(graph.links)
+			    	.enter().append("line")
+			      	.attr("class", "link")
+			      	.style("stroke-width", function(d) { return Math.sqrt(d.value); });
+            	var node = svg.selectAll(".node").data(graph.nodes);
 
-        var width = 2048,
-            height = 2048,
-            r = 32,
-            root;
-
-        var force = d3.layout.force()
-                .linkDistance(100)
-                .charge(-500)
-                .gravity(.00001)
-                .size([width, height])
-                .on("tick", tick);
-
-        var svg = d3.select("body")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
-        svg.append("defs").attr("id", "defs");
-
-        var link = svg.selectAll(".link"),
-                node = svg.selectAll(".node"),
-                pattern = d3.select("defs").selectAll(".pattern");
-        
-        d3.json("/users/martinei.json", function(error, json) {
-            root = json;
-            update();
-        });
-
-
-        function update() {
-            var nodes = flatten(root),
-                links = d3.layout.tree().links(nodes);
-                console.log(JSON.stringify(d3.layout.tree().links(nodes)));
-            // Restart the force layout.
-            force
-                    .nodes(nodes)
-                    .links(links)
-                    .start();
-
-            // Update links.
-            link = link.data(links, function(d) {
-                return d.target.id;
-            });
-
-            link.exit().remove();
-
-            link.enter()
-                .insert("line", ".node")
-                .attr("class", "link");
-            
-            pattern = pattern.data(nodes.filter(function(d) {
-                return d.class === "avatar";
-            }));
-            pattern.exit().remove();
-
-            pattern.enter()
-                    .append("pattern")
-                    .attr("class", "pattern")
-                    .attr("id", function(d) {
-                        if (d.class === "avatar") {
-                            return "images-" + d.name;
-                        } else {
-                            return "";
-                        }
-                    })
-                    .attr("x", "0")
-                    .attr("y", "0")
-                    .attr("patternUnits", "userSpaceOnUse")
-                    .attr("height", "64")
-                    .attr("width", "64")
-                    .append("image")
-                    .attr("x", "0")
-                    .attr("y", "0")
-                    .attr("width", "64")
-                    .attr("height", "64")
-                    .attr("xlink:href", function(d) {
-                        if (d.class === "avatar") {
-                            return "images/" + d.name + ".jpeg";
-                        } else {
-                            return "";
-                        }
-                    });
-            // Update nodes.
-            node = node.data(nodes, function(d) {
-                //console.log(JSON.stringify(d));
-                return d.id;
-            });
-
-            node.exit().remove();
-
-            var nodeEnter = node.enter().append("g")
-                    .attr("class", "node")
-                    .on("click", click)
+            	var nodeEnter = node.enter().append("g")
+                    .attr("id", function(d) { return d.id; })
+                    .attr("class", function(d) { return "node "+d.class; })
                     .call(force.drag);
 
-            nodeEnter.append("circle")
-                .attr("r", function(d) {
-                    if (d.class === "avatar") {
-                        return 32;
-                    }
-                    if (d.class === "root") {
-                        return 32;
-                    }
-                    return Math.sqrt(d.size) / 10 || 4.5;
+                nodeEnter.filter(function(d){ return d.class === "orga" })
+                    .append("circle")
+			      	.attr("r",  "40")
+			      	.attr("fill", "#fff")
+			      	.attr("cx", "5")
+					.attr("cy", "5");
 
-                }).attr("id", function(d) {
-                    return d.name;
-                })
-                .attr("transform", function(d) {
-                    return "translate(-32 , -32)";
-                })
-                .attr("cx", "32")
-                .attr("cy", "32")
-                .attr("fill", function(d) {
-                    if (d.class === "avatar") {
-                        return "url(#images-" + d.name + ")";
-                    } else {
-                        return  color(d);
-                    }
-                });
+			    nodeEnter.filter(function(d){ return d.class === "orga" })  	
+                	.append("circle")
+			      	.attr("r",  "38")
+			      	.attr("fill", "#fff");
 
-            nodeEnter.append("text")
-                    .attr("dy", ".35em")
-                    .text(function(d) {
-                        return d.name;
-                    }).attr("transform", function(d) {
-                        if (d.class === "avatar") {
-                            return "translate(32 , 32)";                        
+                nodeEnter.append("circle")
+			      	.attr("r",  function(d) { return d.class === "user" ? 30 : d.class === "orga" ? 34 : 10; })
+					.attr("transform", function(d) {
+	                    return "translate(-32 , -32)";
+	                })
+	                .attr("cx", "32")
+	                .attr("cy", "32")			      	
+			      	.attr("fill", function(d) {
+                        if (d.class === "user" || d.class === "orga") {
+                            return "url(#images-" + d.id + ")";
                         } else {
-                            return "";
+                            return  color(d);
                         }
                     });
-        }
+			    
+				nodeEnter.append("text")
+                    .attr("dy", ".35em")
+                    .text(function(d) {
+                        return d.label;
+                    }).attr("transform", function(d) {
 
-        function tick() {          
-            link.attr("x1", function(d) {
-                    return d.source.x;
-                })
-                .attr("y1", function(d) {
-                    return d.source.y;
-                })
-                .attr("x2", function(d) {
-                    return d.target.x;
-                })
-                .attr("y2", function(d) {
-                    return d.target.y;
-                });
+                    	return d.class === "user" ?
+                    		"translate(0 , 40)" :
+                    		d.class === "orga" ?
+                    			"translate(50 , 50)" :
+                    			d.class === "repo" ?
+                    				"translate(0 , -20)" :
+                    				""
+                    });
 
-            node.attr("transform", function(d) {
-                return "translate(" + d.x + "," + d.y + ")";
-            });
-        }
-        function color(d) {
-            return d._children ? "#3182bd" // collapsed package
-                    : d.children ? "#c6dbef" // expanded package
+				force.on("tick", function() {
+			    	link.attr("x1", function(d) { return boxX(d.source.x); })
+			        	.attr("y1", function(d) { return boxY(d.source.y); })
+			        	.attr("x2", function(d) { return boxX(d.target.x); })
+			        	.attr("y2", function(d) { return boxY(d.target.y); });
+            		node.attr("transform", function(d) {
+            			return "translate(" + boxX(d.x) + "," + boxY(d.y) + ")";
+            		});
+			  	});	
+			});
+
+			function updatePattern(nodes) {
+	            pattern = pattern.data(nodes.filter(function(d) {
+	                return d.class === "user" || d.class === "orga";
+	            }));
+
+	            pattern
+	                .exit()
+	                .remove();
+
+	            pattern
+	                .enter()
+	                .append("pattern")
+	                .attr("class", "pattern")
+	                .attr("id", function(d) {
+	                    if (d.class === "user" || d.class === "orga") {
+	                        return "images-" + d.id;
+	                    } else {
+	                        return "";
+	                    }
+	                })
+	                .attr("x", "0").attr("y", "0")
+	                .attr("patternUnits", "userSpaceOnUse")
+	                .attr("width", "64")
+	                .attr("height", "64")
+	                .append("image")
+	                .attr("x", "0").attr("y", "0")
+	                .attr("width", "64")
+	                .attr("height", "64")
+	                .attr("xlink:href", function(d) {
+	                    if (d.class === "user" || d.class === "orga") {
+	                        return d.avatar;
+	                    } else {
+	                        return "";
+	                    }
+	                });
+	        }
+
+			// prevent node and links moving out of viewing area.
+			function boxX(x){
+				return Math.max(r, Math.min(w - r, x));
+			}
+			
+			function boxY(y){
+				return Math.max(r, Math.min(h - r, y));
+			}
+
+        	function color(d) {
+            	return d.class === "user" ? "#3182bd" // collapsed package
+                    : d.class === "repo" ? "#c6dbef" // expanded package
                     : "#fd8d3c"; // leaf node
-        }
-
-        // Toggle children on click.
-        function click(d) {
-            if (d3.event.defaultPrevented)
-                return; // ignore drag
-            if (d.children) {
-                d._children = d.children;
-                d.children = null;
-            } else {
-                d.children = d._children;
-                d._children = null;
-            }
-            update();
-        }
-
-        // Returns a list of all nodes under the root.
-        function flatten(root) {
-
-            var nodes = [], i = 0;
-
-            function recurse(node) {
-                if (node.children)
-                    node.children.forEach(recurse);
-                if (!node.id)
-                    node.id = ++i;
-                nodes.push(node);
-            }
-
-            recurse(root);
-            //console.log(JSON.stringify(nodes));
-            return nodes;
-        }
-
-    </script>
+        	}
+			function click(d) {}		    		
+	    </script>
+	</body>
+</html>
