@@ -29,10 +29,13 @@
 	<body>
 	    <script src="http://d3js.org/d3.v3.min.js"></script>
 	    <script>
-	    	var h=1024,
-	    		w=1024,
+	    	var h=1080,
+	    		w=1920,
 	    		r=50;
-
+	    	var radius = {
+	    		"user" : 32,
+	    		"orga" : 64
+	    	};
 			var force = d3.layout.force()
   
                 .charge(-1000)
@@ -46,7 +49,7 @@
 			    .attr("height", h);
         	svg.append("defs").attr("id", "defs");
 			var pattern = d3.select("defs").selectAll(".pattern");
-			d3.json("/users/martinei.json", function(error, graph) {
+			d3.json("test.json", function(error, graph) {
 			  	force
 			      .nodes(graph.nodes)
 			      .links(graph.links)
@@ -57,32 +60,33 @@
 			    	.enter().append("line")
 			      	.attr("class", "link")
 			      	.style("stroke-width", function(d) { return Math.sqrt(d.value); });
-            	var node = svg.selectAll(".node").data(graph.nodes);
+            	var node = svg.selectAll(".node")
+            		.data(graph.nodes);
 
             	var nodeEnter = node.enter().append("g")
                     .attr("id", function(d) { return d.id; })
                     .attr("class", function(d) { return "node "+d.class; })
                     .call(force.drag);
 
-                nodeEnter.filter(function(d){ return d.class === "orga" })
+                nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
                     .append("circle")
-			      	.attr("r",  "40")
+			      	.attr("r",  function(d) { return getR(d)+6; })
 			      	.attr("fill", "#fff")
-			      	.attr("cx", "5")
-					.attr("cy", "5");
+			      	.attr("cx", function(d){ return d.class === "orga" ? 5 : 2})
+					.attr("cy", function(d){ return d.class === "orga" ? 5 : 2});
 
-			    nodeEnter.filter(function(d){ return d.class === "orga" })  	
+			    nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })  	
                 	.append("circle")
-			      	.attr("r",  "38")
+			      	.attr("r",  function(d) { return getR(d)+4; })
 			      	.attr("fill", "#fff");
 
                 nodeEnter.append("circle")
-			      	.attr("r",  function(d) { return d.class === "user" ? 30 : d.class === "orga" ? 34 : 10; })
+			      	.attr("r",  function(d) {return getR(d);})
 					.attr("transform", function(d) {
-	                    return "translate(-32 , -32)";
+	                    return "translate(-" + getR(d) +" , -" + getR(d) + ")";
 	                })
-	                .attr("cx", "32")
-	                .attr("cy", "32")			      	
+	                .attr("cx", function(d) {return getR(d)})	
+	                .attr("cy", function(d) {return getR(d)})			      	
 			      	.attr("fill", function(d) {
                         if (d.class === "user" || d.class === "orga") {
                             return "url(#images-" + d.id + ")";
@@ -96,15 +100,12 @@
                     .text(function(d) {
                         return d.label;
                     }).attr("transform", function(d) {
-
-                    	return d.class === "user" ?
-                    		"translate(0 , 40)" :
+                    	return d.class === "user" ? 
+                    		"translate("+getR(d)*2 +", " + getR(d)*0.7 + ")" :
                     		d.class === "orga" ?
-                    			"translate(50 , 50)" :
-                    			d.class === "repo" ?
-                    				"translate(0 , -20)" :
-                    				""
-                    });
+                    			"translate(0 , " + getR(d)*1.5 + ")" :
+                    			"translate(75 , 0)";
+	                });
 
 				force.on("tick", function() {
 			    	link.attr("x1", function(d) { return boxX(d.source.x); })
@@ -139,12 +140,12 @@
 	                })
 	                .attr("x", "0").attr("y", "0")
 	                .attr("patternUnits", "userSpaceOnUse")
-	                .attr("width", "64")
-	                .attr("height", "64")
+	                .attr("width", function(d){return d.class === "user" ? radius.user * 2 : radius.orga * 2})
+	                .attr("height",function(d){return d.class === "user" ? radius.user * 2 : radius.orga * 2})
 	                .append("image")
 	                .attr("x", "0").attr("y", "0")
-	                .attr("width", "64")
-	                .attr("height", "64")
+	                .attr("width", function(d){return d.class === "user" ? radius.user * 2 : radius.orga * 2})
+	                .attr("height", function(d){return d.class === "user" ? radius.user * 2 : radius.orga * 2})
 	                .attr("xlink:href", function(d) {
 	                    if (d.class === "user" || d.class === "orga") {
 	                        return d.avatar;
@@ -153,6 +154,13 @@
 	                    }
 	                });
 	        }
+
+			function getR(d){
+				return d.class === "user" ? 
+                	radius.user: 
+                	d.class === "orga" ? 
+                		radius.orga : 10;	
+			}
 
 			// prevent node and links moving out of viewing area.
 			function boxX(x){
