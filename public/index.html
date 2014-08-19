@@ -23,10 +23,27 @@
 		    }
 		    .avatar {
 		        border-radius: 20px;
-		    }		
+		    }	
+		    .ui {
+		    	position: fixed;
+		    	top: 20px;
+		    	left: 20px;
+		    	padding: 5px;
+		 
+				-webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
+				-moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
+				box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);	    	
+		    }	
 		</style>
 	</head>
 	<body>
+		<div class="ui">
+			<label for="value">Name</label>
+			<input id="ui.value" name="value" />
+			<label for="value">Type</label>
+			<select id="ui.type" name="type"></select>
+			<input id="ui.submit" type="submit" value="query" />
+		</div>
 	    <script src="http://d3js.org/d3.v3.min.js"></script>
 	    <script>
 	    	var h=1080,
@@ -40,7 +57,7 @@
   
                 .charge(-1000)
                 .linkDistance(function(link) {
-     				return link.class === "owns" ? 100 : link.class === "member" ? 300 :500;
+     				return link.class === "owns" ? 200 : link.class === "member" ? 300 :400;
     			})
                 .gravity(0.05)
 			    .size([w, h]);	    
@@ -49,75 +66,121 @@
 			    .attr("height", h);
         	svg.append("defs").attr("id", "defs");
 			var pattern = d3.select("defs").selectAll(".pattern");
-			d3.json("/users/martinei", function(error, graph) {
-			  	force
-			      .nodes(graph.nodes)
-			      .links(graph.links)
-			      .start();	
-				updatePattern(graph.nodes);
-				var link = svg.selectAll(".link")
-					.data(graph.links)
-			    	.enter().append("line")
-			      	.attr("class", "link")
-			      	.style("stroke-width", function(d) { return Math.sqrt(d.value); });
-            	var node = svg.selectAll(".node")
-            		.data(graph.nodes);
+	        var types = ["user", "repo", "orga"];
+	        var user = "";
+	        var type = 0;
 
-            	var nodeEnter = node.enter().append("g")
-                    .attr("id", function(d) { return d.id; })
-                    .attr("class", function(d) { return "node "+d.class; })
-                    .call(force.drag);
+	        detectUrl();
+	        setup();
+	        if(user.length > 0){
+	        	update();
+	        }
+	        
+	        function setup(){
+	        	var typeSelect = document.getElementById("ui.type");
+	        	var i = 0;
+	        	types.forEach(function(entry) {
+	        		var option = document.createElement("option");
+	        		option.text = entry;
+	        		option.value = entry;
+	        		if(entry === type){
+	        			typeSelect.selectedIndex = i;
+	        		}
+	        		i++;
+	        		typeSelect.appendChild(option);
+	        	});
+		        addEvent(document.getElementById("ui.submit"), 'click', function(){
+		        	var parts = window.location.href.split("?");
+		        	var value = document.getElementById("ui.value").value;
+		        	typeSelect = document.getElementById("ui.type");
+					var type = typeSelect.options[typeSelect.selectedIndex].value;
+					console.log("calling "+type+ " "+value);
+		        	window.location.href = parts[0]+"?"+type+"&"+value;
+		        });	        	
+	        }
 
-                nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
-                    .append("circle")
-			      	.attr("r",  function(d) { return getR(d)+6; })
-			      	.attr("fill", "#fff")
-			      	.attr("cx", function(d){ return d.class === "orga" ? 5 : 2})
-					.attr("cy", function(d){ return d.class === "orga" ? 5 : 2});
+	        function detectUrl(){
+	        	var parts = window.location.href.split("?");
+	        	if(parts.length > 1){
+	        		parts = parts[1].split("&");
+	        		if(parts.length > 1){
+	        			document.getElementById("ui.value").value = parts[0];
+	        			user = parts[1];
+	        			type = parts[0];
+	        		}
+	        	}
+	        }
 
-			    nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })  	
-                	.append("circle")
-			      	.attr("r",  function(d) { return getR(d)+4; })
-			      	.attr("fill", "#fff");
+	        function update(){
+				d3.json("/users/"+user, function(error, graph) {
+				  	force
+				      .nodes(graph.nodes)
+				      .links(graph.links)
+				      .start();	
+					updatePattern(graph.nodes);
+					var link = svg.selectAll(".link")
+						.data(graph.links)
+				    	.enter().append("line")
+				      	.attr("class", "link")
+				      	.style("stroke-width", function(d) { return Math.sqrt(d.value); });
+	            	var node = svg.selectAll(".node")
+	            		.data(graph.nodes);
 
-                nodeEnter.append("circle")
-			      	.attr("r",  function(d) {return getR(d);})
-					.attr("transform", function(d) {
-	                    return "translate(-" + getR(d) +" , -" + getR(d) + ")";
-	                })
-	                .attr("cx", function(d) {return getR(d)})	
-	                .attr("cy", function(d) {return getR(d)})			      	
-			      	.attr("fill", function(d) {
-                        if (d.class === "user" || d.class === "orga") {
-                            return "url(#images-" + d.id + ")";
-                        } else {
-                            return  color(d);
-                        }
-                    });
-			    
-				nodeEnter.append("text")
-                    .attr("dy", ".35em")
-                    .text(function(d) {
-                        return d.label;
-                    }).attr("transform", function(d) {
-                    	return d.class === "user" ? 
-                    		"translate("+getR(d)*2 +", " + getR(d)*0.7 + ")" :
-                    		d.class === "orga" ?
-                    			"translate(0 , " + getR(d)*1.5 + ")" :
-                    			"translate(75 , 0)";
-	                });
+	            	var nodeEnter = node.enter().append("g")
+	                    .attr("id", function(d) { return d.id; })
+	                    .attr("class", function(d) { return "node "+d.class; })
+	                    .call(force.drag);
 
-				force.on("tick", function() {
-			    	link.attr("x1", function(d) { return boxX(d.source.x); })
-			        	.attr("y1", function(d) { return boxY(d.source.y); })
-			        	.attr("x2", function(d) { return boxX(d.target.x); })
-			        	.attr("y2", function(d) { return boxY(d.target.y); });
-            		node.attr("transform", function(d) {
-            			return "translate(" + boxX(d.x) + "," + boxY(d.y) + ")";
-            		});
-			  	});	
-			});
+	                nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
+	                    .append("circle")
+				      	.attr("r",  function(d) { return getR(d)+6; })
+				      	.attr("fill", "#fff")
+				      	.attr("cx", function(d){ return d.class === "orga" ? 5 : 2})
+						.attr("cy", function(d){ return d.class === "orga" ? 5 : 2});
 
+				    nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })  	
+	                	.append("circle")
+				      	.attr("r",  function(d) { return getR(d)+4; })
+				      	.attr("fill", "#fff");
+
+	                nodeEnter.append("circle")
+				      	.attr("r",  function(d) {return getR(d);})
+						.attr("transform", function(d) {
+		                    return "translate(-" + getR(d) +" , -" + getR(d) + ")";
+		                })
+		                .attr("cx", function(d) {return getR(d)})	
+		                .attr("cy", function(d) {return getR(d)})			      	
+				      	.attr("fill", function(d) {
+	                        if (d.class === "user" || d.class === "orga") {
+	                            return "url(#images-" + d.id + ")";
+	                        } else {
+	                            return  color(d);
+	                        }
+	                    });
+				    
+					nodeEnter.append("text")
+	                    .attr("dy", ".35em")
+	                    .text(function(d) {
+	                        return d.label;
+	                    }).attr("transform", function(d) {
+	                    	return d.class === "user" ? 
+	                    		"translate("+getR(d)*2 +", " + getR(d)*0.7 + ")" :
+	                    		d.class === "orga" ?
+	                    			"translate(0 , " + getR(d)*1.5 + ")" :
+	                    			"translate(75 , 0)";
+		                });
+
+					force.on("tick", function() {
+				    	link.attr("x1", function(d) { return boxX(d.source.x); })
+				        	.attr("y1", function(d) { return boxY(d.source.y); })
+				        	.attr("x2", function(d) { return boxX(d.target.x); })
+				        	.attr("y2", function(d) { return boxY(d.target.y); });
+	            		node.attr("transform", function(d) {
+	            			return "translate(" + boxX(d.x) + "," + boxY(d.y) + ")";
+	            		});
+				  	});	
+				});
+			}
 			function updatePattern(nodes) {
 	            pattern = pattern.data(nodes.filter(function(d) {
 	                return d.class === "user" || d.class === "orga";
@@ -154,6 +217,13 @@
 	                    }
 	                });
 	        }
+        	
+        	function addEvent(element, evnt, funct){
+			  if (element.attachEvent)
+			   return element.attachEvent('on'+evnt, funct);
+			  else
+			   return element.addEventListener(evnt, funct, false);
+			}
 
 			function getR(d){
 				return d.class === "user" ? 
