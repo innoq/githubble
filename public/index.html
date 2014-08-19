@@ -68,7 +68,7 @@
 			var pattern = d3.select("defs").selectAll(".pattern");
 	        var types = ["user", "repo", "orga"];
 	        var user = "";
-	        var type = 0;
+	        var type = "user";
 
 	        detectUrl();
 	        setup();
@@ -77,17 +77,20 @@
 	        }
 	        
 	        function setup(){
+	        	document.getElementById("ui.value").value = user;
 	        	var typeSelect = document.getElementById("ui.type");
 	        	var i = 0;
 	        	types.forEach(function(entry) {
 	        		var option = document.createElement("option");
 	        		option.text = entry;
 	        		option.value = entry;
+	        		console.log("entry "+entry);
+	        		typeSelect.appendChild(option);
 	        		if(entry === type){
-	        			typeSelect.selectedIndex = i;
+	        			typeSelect[i].selected = true;
 	        		}
 	        		i++;
-	        		typeSelect.appendChild(option);
+	        		
 	        	});
 		        addEvent(document.getElementById("ui.submit"), 'click', function(){
 		        	var parts = window.location.href.split("?");
@@ -104,7 +107,6 @@
 	        	if(parts.length > 1){
 	        		parts = parts[1].split("&");
 	        		if(parts.length > 1){
-	        			document.getElementById("ui.value").value = parts[0];
 	        			user = parts[1];
 	        			type = parts[0];
 	        		}
