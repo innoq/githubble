@@ -1,7 +1,23 @@
-@(message: String)
+@main("Welcome to GitHubble") {
 
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
+	<div class="ui">
+		<label for="value">Name</label>
+		<input id="ui.value" name="value" />
+		<label for="value">Type</label>
+		<select id="ui.type" name="type"></select>
+		<input id="ui.submit" type="submit" value="query" />
+	</div>
+	<script type="text/javascript" src="@routes.Assets.at("javascripts/d3.v3.min.js")"></script>
+		<script type="text/javascript">
+			var usersControllerPath = "@routes.Users.user(":user")";
+		</script>
+		<script type="text/javascript" src="@routes.Assets.at("javascripts/githubble.js")"></script>
+		<script type="text/javascript">
+		detectUrl();
+		setup();
+		if(user.length > 0){
+			update();
+		}
+	</script>
 
 }

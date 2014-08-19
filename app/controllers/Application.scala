@@ -9,8 +9,8 @@ object Application extends Controller {
   def home = Action { implicit request =>
     
     render {
-      case Accepts.Html()  => Redirect(controllers.routes.Assets.at("index.html"))
-      case Accepts.Json()  =>Ok (Json.obj())
+      case Accepts.Html()  => Ok(views.html.index())
+      case Accepts.Json()  => Ok(Json.obj())
     }
     
   }

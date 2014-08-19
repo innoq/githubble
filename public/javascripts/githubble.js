@@ -62,7 +62,7 @@ function detectUrl(){
 }
 
 function update(){
-	var path = "/users/"+user;
+	var path = usersControllerPath.replace(":user", user);
 	//var path = "test.json"
 	console.log("call backend with "+path);
 	d3.json(path, function(error, graph) {
