@@ -63,7 +63,7 @@ function detectUrl(){
 
 function update(){
 	var path = usersControllerPath.replace(":user", user);
-	//var path = "test.json"
+	//var path = "/assets/test.json"
 	console.log("call backend with "+path);
 	d3.json(path, function(error, graph) {
 		console.log("nodes count "+graph.nodes.length);
@@ -84,17 +84,15 @@ function update(){
     	var nodeEnter = node.enter().append("g")
             .attr("id", function(d) { return d.id; })
             .attr("class", function(d) { return "node "+d.class; })
+            .on("click", changeContext)
             .call(force.drag);
         
-        var circle = nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
+        nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
             .append("circle")
 	      	.attr("r",  function(d) { return getR(d)+6; })
 	      	.attr("fill", "#fff")
 	      	.attr("cx", function(d){ return d.class === "orga" ? 5 : 2})
 			.attr("cy", function(d){ return d.class === "orga" ? 5 : 2});
-            
-        circle.filter(function(d){ return d.class === "user" })
-            .on("click", click);
 
 	    nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })  	
         	.append("circle")
@@ -106,6 +104,7 @@ function update(){
 			.attr("transform", function(d) {
                 return "translate(-" + getR(d) +" , -" + getR(d) + ")";
             })
+            .attr("class", "avatar")
             .attr("cx", function(d) {return getR(d)})	
             .attr("cy", function(d) {return getR(d)})			      	
 	      	.attr("fill", function(d) {
@@ -178,14 +177,12 @@ function updatePattern(nodes) {
 }
 
 // change Context onClick
-function click(d) {
+var changeContext = function(d) {
     console.log("click");
-    if (!d3.event.defaultPrevented) {
-        if (d.class === "user") {
-            var parts = window.location.href.split("?");       
-            window.location.href = parts[0]+"?user&"+d.label;
-        }
-    }
+    if (d3.event.defaultPrevented) return;
+    var parts = window.location.href.split("?");
+    var type = d.class.replace("node ", "");
+    window.location.href = parts[0]+"?"+type+"&"+d.label;
 }
 
 function addEvent(element, evnt, funct){
