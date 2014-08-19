@@ -1,12 +1,17 @@
 @main("Welcome to GitHubble") {
 
-	<div class="ui">
+	<div id="query" class="ui">
 		<label for="value">GitHub Account</label>
 		<input id="ui.value" name="value" />
 		<label for="value">Type</label>
 		<select id="ui.type" name="type"></select>
 		<input id="ui.submit" type="submit" value="query" />
 	</div>
+
+	<div id="status" class="ui">
+		Status
+	</div>
+
 	<script type="text/javascript" src="@routes.Assets.at("javascripts/d3.v3.min.js")"></script>
 	<script type="text/javascript">
 		var usersControllerPath = "@routes.Users.user(":user")";
