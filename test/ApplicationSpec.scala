@@ -4,12 +4,13 @@ import play.api.test.Helpers._
 import org.scalatestplus.play._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import play.api.http.MediaType
 
 
 @RunWith(classOf[JUnitRunner])
 class ApplicationSpec extends PlaySpec with OneAppPerSuite {
 
-  val CONTENT_TYPE = "application/vnd.api+json";
+  val CONTENT_TYPE = "application/json";
   
   "Application" should {
 

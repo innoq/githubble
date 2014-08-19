@@ -1,6 +1,5 @@
 package controllers
 
-import http.CustomContentType._
 import play.api.mvc.Controller
 import play.Logger
 import play.api.libs.ws.WS
