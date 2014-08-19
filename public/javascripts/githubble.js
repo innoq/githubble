@@ -59,13 +59,13 @@ function changeContextByUi(){
         typeSelect = document.getElementById("ui.type");
         var type = typeSelect.options[typeSelect.selectedIndex].value;
         console.log("calling "+type+ " "+value);
-        window.location.href = parts[0]+"?"+type+"&"+value;
+        window.location.href = parts[0]+"?"+type+"="+value;
 }
 
 function detectUrl(){
 	var parts = window.location.href.split("?");
 	if(parts.length > 1){
-		parts = parts[1].split("&");
+		parts = parts[1].split("=");
 		if(parts.length > 1){
 			user = parts[1];
 			type = parts[0];
@@ -220,7 +220,7 @@ var changeContext = function(d) {
     if (d3.event.defaultPrevented) return;
     var parts = window.location.href.split("?");
     var type = d.class.replace("node ", "");
-    window.location.href = parts[0]+"?"+type+"&"+d.label;
+    window.location.href = parts[0]+"?"+type+"="+d.label;
 }
 
 
