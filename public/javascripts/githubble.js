@@ -76,7 +76,13 @@ function detectUrl(){
 function handleError(error) {
     var body = document.getElementsByTagName("body")[0];
     var warn = document.createElement("div");
-    warn.innerHTML = "<h2>There was an error performing your Request!</2h><br />please try again later!";
+    document.getElementById("status").hidden = true;
+    document.getElementById("query").hidden = true;
+    console.log(error.responseText);
+    // TODO make this nicer and/or more secure?
+    var info = eval('('+error.responseText+')');
+
+    warn.innerHTML = "<h2>Error performing your Request!</h2><br />All "+info.limit+" Calls were made.<br />please try again later!<br />(around "+info.reset+")";
     warn.setAttribute("class", "ui");
     warn.setAttribute("id", "warn");
     body.appendChild(warn);
@@ -84,7 +90,6 @@ function handleError(error) {
 }
 
 function updateStatus(status){
-    console.log(JSON.stringify(status));
     var statusUI = document.getElementById("status");
     statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+status.reset;
 }
@@ -94,7 +99,9 @@ function update(){
 	//var path = "/assets/test.json"
 	console.log("call backend with "+path);
 	d3.json(path, function(error, graph) {
-        if (error) return handleError(error);
+        if (error) {
+            return handleError(error);
+        } 
 		console.log("nodes count "+graph.nodes.length);
 	  	console.log("links count "+graph.links.length);
         updateStatus(graph.status);
@@ -209,7 +216,6 @@ function updatePattern(nodes) {
 
 // change Context onClick
 var changeContext = function(d) {
-    console.log("click");
     if (d3.event.defaultPrevented) return;
     var parts = window.location.href.split("?");
     var type = d.class.replace("node ", "");
