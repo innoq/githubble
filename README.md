@@ -8,7 +8,7 @@ There are several kinds of nodes:
 
 * User - the basic GitHub User Account (identified by Name and Avatar)
 * Organisation - Organisations hold Teams of Users (identified by Name and Avatar)
-* Repositoires - small Nodes owned by Organisations or Users.
+* Repositories - small Nodes owned by Organisations or Users.
 
 Concepts are still in Development.
 
