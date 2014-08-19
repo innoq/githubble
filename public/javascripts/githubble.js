@@ -1,5 +1,5 @@
-var h=1024,
-	w=1024,
+var h=720,
+	w=1280,
 	r=50;
 var radius = {
 	"user" : 32,
@@ -40,14 +40,29 @@ function setup(){
 		i++;
 		
 	});
+
+    addEvent(document.getElementById("ui.value"), 'keydown', function(e) {
+        if (e.which == 13) {
+           changeContextByUi();
+        }
+    });
+
+
+    
+
+
     addEvent(document.getElementById("ui.submit"), 'click', function(){
-    	var parts = window.location.href.split("?");
-    	var value = document.getElementById("ui.value").value;
-    	typeSelect = document.getElementById("ui.type");
-		var type = typeSelect.options[typeSelect.selectedIndex].value;
-		console.log("calling "+type+ " "+value);
-    	window.location.href = parts[0]+"?"+type+"&"+value;
+    	changeContextByUi();
     });	        	
+}
+
+function changeContextByUi(){
+    var parts = window.location.href.split("?");
+        var value = document.getElementById("ui.value").value;
+        typeSelect = document.getElementById("ui.type");
+        var type = typeSelect.options[typeSelect.selectedIndex].value;
+        console.log("calling "+type+ " "+value);
+        window.location.href = parts[0]+"?"+type+"&"+value;
 }
 
 function detectUrl(){
@@ -61,11 +76,16 @@ function detectUrl(){
 	}
 }
 
+function handleError(error) {
+    return console.warn(error);
+}
+
 function update(){
 	var path = usersControllerPath.replace(":user", user);
 	//var path = "/assets/test.json"
 	console.log("call backend with "+path);
 	d3.json(path, function(error, graph) {
+        if (error) return handleError(error);
 		console.log("nodes count "+graph.nodes.length);
 	  	console.log("links count "+graph.links.length);
 	  	force
