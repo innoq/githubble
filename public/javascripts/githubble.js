@@ -1,5 +1,5 @@
-var h=1080,
-	w=1920,
+var h=1024,
+	w=1024,
 	r=50;
 var radius = {
 	"user" : 32,
@@ -9,9 +9,9 @@ var force = d3.layout.force()
     .charge(-1000)
     .linkDistance(function(link) {
 			return link.class === "owns" ? 
-				250 : 
+				300 : 
 				link.class === "member" ? 
-					400 : 
+					150 : 
 					500;
 	})
     .gravity(0.05)
@@ -63,7 +63,7 @@ function detectUrl(){
 
 function update(){
 	var path = usersControllerPath.replace(":user", user);
-	//var path = "test.json"
+	//var path = "/assets/test.json"
 	console.log("call backend with "+path);
 	d3.json(path, function(error, graph) {
 		console.log("nodes count "+graph.nodes.length);
@@ -84,8 +84,9 @@ function update(){
     	var nodeEnter = node.enter().append("g")
             .attr("id", function(d) { return d.id; })
             .attr("class", function(d) { return "node "+d.class; })
+            .on("click", changeContext)
             .call(force.drag);
-
+        
         nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
             .append("circle")
 	      	.attr("r",  function(d) { return getR(d)+6; })
@@ -103,6 +104,7 @@ function update(){
 			.attr("transform", function(d) {
                 return "translate(-" + getR(d) +" , -" + getR(d) + ")";
             })
+            .attr("class", "avatar")
             .attr("cx", function(d) {return getR(d)})	
             .attr("cy", function(d) {return getR(d)})			      	
 	      	.attr("fill", function(d) {
@@ -136,6 +138,7 @@ function update(){
 	  	});	
 	});
 }
+
 function updatePattern(nodes) {
     pattern = pattern.data(nodes.filter(function(d) {
         return d.class === "user" || d.class === "orga";
@@ -171,6 +174,15 @@ function updatePattern(nodes) {
                 return "";
             }
         });
+}
+
+// change Context onClick
+var changeContext = function(d) {
+    console.log("click");
+    if (d3.event.defaultPrevented) return;
+    var parts = window.location.href.split("?");
+    var type = d.class.replace("node ", "");
+    window.location.href = parts[0]+"?"+type+"&"+d.label;
 }
 
 function addEvent(element, evnt, funct){
