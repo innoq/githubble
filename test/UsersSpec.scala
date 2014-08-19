@@ -31,7 +31,19 @@ class UsersSpec extends PlaySpec  {
     "gists_url": "https://api.github.com/users/martinei/gists{/gist_id}",
     "starred_url": "https://api.github.com/users/martinei/starred{/owner}{/repo}",
     "subscriptions_url": "https://api.github.com/users/martinei/subscriptions",
-    "organizations_url": "https://api.github.com/users/martinei/orgs",
+    "organizations_url": 
+		[
+		  {
+		    "login": "jenkinsci",
+		    "id": 107424,
+		    "url": "https://api.github.com/orgs/jenkinsci",
+		    "repos_url": "https://api.github.com/orgs/jenkinsci/repos",
+		    "events_url": "https://api.github.com/orgs/jenkinsci/events",
+		    "members_url": "https://api.github.com/orgs/jenkinsci/members{/member}",
+		    "public_members_url": "https://api.github.com/orgs/jenkinsci/public_members{/member}",
+		    "avatar_url": "https://avatars.githubusercontent.com/u/107424?v=2"
+		  }
+		] ,      
     "repos_url": [        
             {
                 "id": 6756561,
@@ -161,12 +173,19 @@ class UsersSpec extends PlaySpec  {
       (nodes(1) \ "label").as[String]  must equal ("martinei/async-http-client")
       (nodes(1) \ "class").as[String] must equal ("repo")
       
+      
+      // Third node should be the organisation
+      (nodes(2) \ "id").as[String]  must equal ("orga_107424")
+      (nodes(2) \ "label").as[String]  must equal ("jenkinsci")
+      (nodes(2) \ "class").as[String] must equal ("orga")
+      
 
       val links = (result \ "links").as[JsArray]
       (links(0) \ "class").as[String] must equal("owns")
       (links(0) \ "source").as[Int] must equal(0)
       (links(0) \ "target").as[Int] must equal(1)
       (links(0) \ "value").as[Int] must equal(1)
+      
 // TODO: Check links
       
       /*

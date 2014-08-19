@@ -39,22 +39,18 @@ object Users extends Controller {
  
    
    def user(name : String) = Action.async {
-        // temporary canned repsonse
-//       Future.successful(Ok(json))
-       
-    GitHub.getUser(name).flatMap { gitHubUser =>
-            
-      val completeGitHubUser = gitHubUser.embedd ("repos_url")
-      
-      completeGitHubUser.map {
-    	  res =>
-//    	   Ok (res.json )
-    	  Ok (gitHubUserToOutput (res))
-    	 
+    for {
+    	 gitHubUser <- GitHub.getUser(name)    	 
+    	 withRepos <-  gitHubUser.embedd ("repos_url")
+    	 x <- {System.out.println (withRepos.json); Future{gitHubUser} }
+    	 withOrgs <- withRepos.embedd("organizations_url")
+    	 withFollower <- withOrgs.embedd("followers_url") 
+      } yield {
+        
+        System.out.println (withFollower.json)
+        Ok (gitHubUserToOutput (withFollower))                
       }
-     
-   }
- }
+ 	}
  
  
   def copyField (name : String) : Reads[JsObject] = {
@@ -81,94 +77,79 @@ object Users extends Controller {
 		  (__ \  field ).json.put (JsNumber(value))    
   }
 
-  
-  
-   
-  case class User(login : String, name :String,  id : Int, avatar : String)
+  implicit val JsArrayReducer = Reducer[JsArray, JsArray](js => js)
   
   def gitHubUserToOutput ( gitHubUser : GitHubResource) : JsValue={
-		  
-		  // user
-		  // repos
-		  // concatenation liefert denen indexe
-    
-		  // link 
-    
-//	  	  val users : Reads[User] =  	    (
-//	  	    	(__ \ 'login).read[String] and
-//	  	    	(__ \ 'name).read[String] and
-//	  	    	(__ \ 'id).read[Int] and
-//	  	  	  	(__ \ 'avatar_url).read[String]	
-//	  	    ) (User)
-//    
-	  	   
-	  	    //gitHubUser.read[user]
-		  // a transformer to create a single user object from gitHubUser json
-           val userTransformer =
-             (
-               copyField("label", "login") and
-               copyField ("name") and
-               mapId("user") and
-               put ("class", "user") and               
-               (__ \ 'avatar ).json.copyFrom( (__ \ 'avatar_url).json.pick.map { 
-               	case JsString (s) => JsString (s+"&s=64")
-               	case _ @ other  => other 
-               }) 
-             ) reduce
-             
-             
-             // transform a single gitHub Repository entry into a node entry
-             val singleRepoTransformer =
-               (
-	               copyField ("name") and
-	               copyField ("label", "full_name") and
-	               put ("class", "repo") and
-	               mapId ("repo")
-               ) reduce               
-             
-             // Transform a list of repos
-               //Todo create an generic JsArray Mapping transformer
-             val reposTransformer= (__ \ 'repos_url).read[JsArray].map( { repos =>               
-               JsArray (repos.value.map { repo =>
-                repo.transform (singleRepoTransformer).get 
-               })                            	
-             } )
-             
-             val userAsSingleSeq = userTransformer.map { js => JsArray(Seq(js))}
-           
-           
-      implicit val JsArrayReducer = Reducer[JsArray, JsArray](js => js)
-      val nodes =  (__ \ "nodes").json.copyFrom (
-          (userAsSingleSeq and reposTransformer).reduce
-          )
-             
-             val singleRepoToLinkTransformer =
-               (
 
-	               put ("class", "owns") and
-	               put ("value", 1) and
-	               put ("source", 0) 
-               ) reduce               
-          
-          // A link from the user to each repo
-          val linksArrayTransformer= (__ \ 'repos_url).read[JsArray].map( { repos =>
-            
-            
-            	
-               JsArray (repos.value.zipWithIndex.map { case (repo, idx) =>
-                repo.transform (
-                    (singleRepoToLinkTransformer and put ("target", idx+1) ) reduce                    
-                ).get 
-               })                            	
-             } )          
-          val links = (__ \ "links").json.copyFrom (linksArrayTransformer          
-          )
-	     // a Transformer to create the overall result  from gitHubUser
-	     val resultTransformer = (nodes and links) reduce
-               
-              gitHubUser.json.transform(resultTransformer).get 
-             
-           }
+    
+    def arrayRead[T <: JsValue](singleRead : Reads[T]) : Reads[JsArray]= {
+      val arrayRead = implicitly [Reads[JsArray]]
+      arrayRead.map({ array =>
+      JsArray(array.value.map { item =>
+        item.transform(singleRead).get
+      })
+    })
+    }
+    
+    // a transformer to create a single user object from gitHubUser json
+    val userTransformer =
+      (
+        copyField("label", "login") and
+        copyField("name") and
+        mapId("user") and
+        put("class", "user") and
+        (__ \ 'avatar).json.copyFrom((__ \ 'avatar_url).json.pick.map {
+          case JsString(s) => JsString(s + "&s=64")
+          case _@ other => other
+        })) reduce
+
+    // transform a single gitHub Repository entry into a node entry
+    val singleRepoTransformer =
+      (
+        copyField("name") and
+        copyField("label", "full_name") and
+        put("class", "repo") and
+        mapId("repo")) reduce
+
+    // Transform a list of repos
+    //Todo create an generic JsArray Mapping transformer
+    val reposTransformer = (__ \ 'repos_url).read(arrayRead(singleRepoTransformer))
+
+    val singleOrgTransformer = (
+      copyField("label", "login") and
+      put("class", "orga") and
+      mapId("orga")) reduce
+    
+    val orgsTransformer = (__ \ 'organizations_url).read(arrayRead(singleOrgTransformer))
+
+    val userAsSingleSeq = userTransformer.map { js => JsArray(Seq(js)) }
+
+    val nodesAsArrayTransformer =  (userAsSingleSeq and reposTransformer and orgsTransformer).reduce 
+    val nodes = (__ \ "nodes").json.copyFrom(nodesAsArrayTransformer)
+    
+      val singleRepoToLinkTransformer =
+      (
+        put("class", "owns") and
+        put("value", 1) and
+        put("source", 0)) reduce
+
+    // A link from the user to each repo
+    val linksArrayTransformer = nodesAsArrayTransformer.map({ node =>
+      JsArray(node.value.zipWithIndex.map {
+        case (repo, idx) =>
+          repo.transform(
+            (singleRepoToLinkTransformer and put("target", idx + 1)) reduce).get
+      })
+    })
+    
+    
+    val links = (__ \ "links").json.copyFrom(linksArrayTransformer)
+    // a Transformer to create the overall result  from gitHubUser
+    val resultTransformer = (nodes and links) reduce
+
+    gitHubUser.json.transform(resultTransformer).get
+
+  }
                   
 }
 
