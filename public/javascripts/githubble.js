@@ -1,5 +1,6 @@
-var h=720,
-	w=1280,
+var resolution = getResultion();
+var h=resolution.h; // 720
+	w=resolution.w; //1280,
 	r=50;
 var radius = {
 	"user" : 32,
@@ -47,10 +48,6 @@ function setup(){
         }
     });
 
-
-    
-
-
     addEvent(document.getElementById("ui.submit"), 'click', function(){
     	changeContextByUi();
     });	        	
@@ -77,7 +74,19 @@ function detectUrl(){
 }
 
 function handleError(error) {
+    var body = document.getElementsByTagName("body")[0];
+    var warn = document.createElement("div");
+    warn.innerHTML = "<h2>There was an error performing your Request!</2h><br />please try again later!";
+    warn.setAttribute("class", "ui");
+    warn.setAttribute("id", "warn");
+    body.appendChild(warn);
     return console.warn(error);
+}
+
+function updateStatus(status){
+    console.log(JSON.stringify(status));
+    var statusUI = document.getElementById("status");
+    statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+status.reset;
 }
 
 function update(){
@@ -88,6 +97,8 @@ function update(){
         if (error) return handleError(error);
 		console.log("nodes count "+graph.nodes.length);
 	  	console.log("links count "+graph.links.length);
+        updateStatus(graph.status);
+
 	  	force
 	      .nodes(graph.nodes)
 	      .links(graph.links)
@@ -203,6 +214,28 @@ var changeContext = function(d) {
     var parts = window.location.href.split("?");
     var type = d.class.replace("node ", "");
     window.location.href = parts[0]+"?"+type+"&"+d.label;
+}
+
+
+
+function getResultion(){
+    var winW = 1280;
+    var winH = 720;
+    if (document.body && document.body.offsetWidth) {
+        winW = document.body.offsetWidth;
+        winH = document.body.offsetHeight;
+    }
+    if (document.compatMode=='CSS1Compat' &&
+        document.documentElement &&
+        document.documentElement.offsetWidth ) {
+        winW = document.documentElement.offsetWidth;
+        winH = document.documentElement.offsetHeight;
+    }
+    if (window.innerWidth && window.innerHeight) {
+        winW = window.innerWidth;
+        winH = window.innerHeight;
+    }
+    return {"w":winW, "h":winH};
 }
 
 function addEvent(element, evnt, funct){
