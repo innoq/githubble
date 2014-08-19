@@ -81,8 +81,8 @@ function handleError(error) {
     console.log(error.responseText);
     // TODO make this nicer and/or more secure?
     var info = eval('('+error.responseText+')');
-
-    warn.innerHTML = "<h2>Error performing your Request!</h2><br />All "+info.limit+" Calls were made.<br />please try again later!<br />(around "+info.reset+")";
+    var time = makeTime(info.reset);
+    warn.innerHTML = "<h2>Error performing your Request!</h2><br />All "+info.limit+" Calls were made.<br />please try again later!<br />(around "+time.full+")";
     warn.setAttribute("class", "ui");
     warn.setAttribute("id", "warn");
     body.appendChild(warn);
@@ -91,7 +91,8 @@ function handleError(error) {
 
 function updateStatus(status){
     var statusUI = document.getElementById("status");
-    statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+status.reset;
+    var time = makeTime(status.reset);
+    statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+time.full;
 }
 
 function update(){
@@ -272,4 +273,12 @@ function color(d) {
         : d.class === "repo" ? "#c6dbef" // expanded package
         : "#fd8d3c"; // leaf node
 }
-function click(d) {}	
+function makeTime(utime){
+    var date = new Date(utime*1000);
+    return {
+        "h":date.getHours(), 
+        "m":date.getMinutes(), 
+        "s":date.getSeconds(), 
+        "full":date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+" UTC"
+    };
+}
