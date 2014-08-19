@@ -7,3 +7,6 @@ nbproject/private/private.properties
 .project
 .settings/
 logs/
+activator
+activator-launch-*.jar
+activator.bat
