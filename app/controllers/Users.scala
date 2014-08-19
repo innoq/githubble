@@ -18,26 +18,7 @@ import service.GitHubResource
  
 object Users extends Controller {
 
-  
- val json = """
- [ {
-  "login" : "martinei",
-  "name" : "Martin Eigenbrodt",
-  "id" : "user_795323",
-  "class" : "user",
-  "avatar" : "https://avatars.githubusercontent.com/u/795323?v=2&s=64",
-  "repositories" : [ {
-    "name" : "async-http-client",
-    "id" : "repo_6756561"
-  } ]
-}, {
-  "name" : "async-http-client",
-  "id" : "repo_6756561",
-   "class" : "repo"
-} ]
- """   
- 
-   
+     
    def user(name : String) = Action.async {
     for {
     	 gitHubUser <- GitHub.getUser(name)    	 
@@ -47,8 +28,11 @@ object Users extends Controller {
     	 withFollower <- withOrgs.embedd("followers_url") 
       } yield {
         
-        System.out.println (withFollower.json)
-        Ok (gitHubUserToOutput (withFollower))                
+    	if (withFollower.success ) {
+    		Ok (gitHubUserToOutput (withFollower)) 
+    	} else {
+    	    TooManyRequest  (Json.toJson (withFollower.rateInfo) )    	  
+    	}
       }
  	}
  
@@ -171,9 +155,11 @@ object Users extends Controller {
     
     val links = (__ \ "links").json.copyFrom(linksArrayTransformerWithTarget)
     // a Transformer to create the overall result  from gitHubUser
-    val resultTransformer = (nodes and links) reduce
+    
+    val rateInfo = ( __ \ "status").json.put (Json.toJson (gitHubUser.rateInfo ))
+    val resultTransformer = (nodes and links and rateInfo) reduce
 
-    gitHubUser.json.transform(resultTransformer).get
+    gitHubUser.json.get.transform(resultTransformer).get
 
   }
                   

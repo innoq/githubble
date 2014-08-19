@@ -174,7 +174,7 @@ class UsersSpec extends PlaySpec  {
   "Users" should {
 
     "map github User correctly" in {
-      val result = Users.gitHubUserToOutput(GitHubResource(gitHubJson,true,RateInfo(0,0,0) ) )
+      val result = Users.gitHubUserToOutput(GitHubResource(Some(gitHubJson),true,RateInfo(0,0,0) ) )
       System.out.println("Result is: " + Json.prettyPrint(result))
       // mus be an array
 
