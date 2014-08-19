@@ -273,12 +273,16 @@ function color(d) {
         : d.class === "repo" ? "#c6dbef" // expanded package
         : "#fd8d3c"; // leaf node
 }
-function makeTime(utime){
-    var date = new Date(utime*1000);
-    return {
-        "h":date.getHours(), 
-        "m":date.getMinutes(), 
-        "s":date.getSeconds(), 
-        "full":date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+" UTC"
-    };
+
+// found here http://blog.kim-maida.com/web-development/unix-timestamp-to-js-local
+function makeTime(timestamp){
+    var d = new Date(timestamp * 1000), // Convert to milliseconds
+        yyyy = d.getFullYear(),
+        mm = ('0' + (d.getMonth() + 1)).slice(-2),  // Months are zero based. Add leading 0.
+        dd = ('0' + d.getDate()).slice(-2),         // Add leading 0.
+        hh = d.getHours(),
+        min = ('0' + d.getMinutes()).slice(-2),     // Add leading 0.
+        time;
+        
+    return {"full" : dd + '.' + mm + '.' + yyyy + ', ' + hh + ':' + min };
 }
