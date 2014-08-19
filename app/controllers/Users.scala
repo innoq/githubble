@@ -136,23 +136,40 @@ object Users extends Controller {
     val nodesWithoutUserAsArrayTransformer =  (reposTransformer and orgsTransformer and followersTransformer).reduce 
     val nodes = (__ \ "nodes").json.copyFrom((userAsSingleSeq and nodesWithoutUserAsArrayTransformer) reduce)
     
-      val singleRepoToLinkTransformer =
-      (
-        put("class", "owns") and
-        put("value", 1) and
-        put("source", 0)) reduce
-
-    // A link from the user to each repo
-    val linksArrayTransformer = nodesWithoutUserAsArrayTransformer.map({ node =>
-      JsArray(node.value.zipWithIndex.map {
-        case (repo, idx) =>
+    
+    
+    
+    def generateLinksTransformer (sourceList : Reads[JsArray], relType : String)= {
+      sourceList.map {
+    	   node =>
+      JsArray(node.value.map {
+        repo =>
           repo.transform(
-            (singleRepoToLinkTransformer and put("target", idx + 1)) reduce).get
-      })
-    })
+            (put("class", relType) and
+             put("value", 1) and
+           put("source", 0) 
+          ) reduce).get
+      })                  
+    }
+    }
+ 
+       //put("target", idx + 1)
+    // A link from the user to each repo
+    val linksArrayTransformer =  ((
+    	generateLinksTransformer (reposTransformer, "owns") and
+    	generateLinksTransformer (orgsTransformer, "member") and
+    	generateLinksTransformer (followersTransformer, "follows")) reduce)
+    
+   val linksArrayTransformerWithTarget = linksArrayTransformer.map { ar =>
+     JsArray(ar.value.zipWithIndex.map {case (it, idx) =>        
+       (it.transform (
+           (__).json.update(put ("target",idx+1))    		   
+       ).get)
+     }      )
+    }     	
     
     
-    val links = (__ \ "links").json.copyFrom(linksArrayTransformer)
+    val links = (__ \ "links").json.copyFrom(linksArrayTransformerWithTarget)
     // a Transformer to create the overall result  from gitHubUser
     val resultTransformer = (nodes and links) reduce
 

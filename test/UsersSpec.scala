@@ -211,10 +211,15 @@ class UsersSpec extends PlaySpec  {
       (links(0) \ "target").as[Int] must equal(1)
       (links(0) \ "value").as[Int] must equal(1)
 
-      (links(1) \ "class").as[String] must equal("owns")
+      (links(1) \ "class").as[String] must equal("member")
       (links(1) \ "source").as[Int] must equal(0)
       (links(1) \ "target").as[Int] must equal(2)
       (links(1) \ "value").as[Int] must equal(1)
+      
+      (links(2) \ "class").as[String] must equal("follows")
+      (links(2) \ "source").as[Int] must equal(0)
+      (links(2) \ "target").as[Int] must equal(3)
+      (links(2) \ "value").as[Int] must equal(1)      
       
 // TODO: Check links
       
