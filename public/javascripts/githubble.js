@@ -83,17 +83,18 @@ function update(){
 
     	var nodeEnter = node.enter().append("g")
             .attr("id", function(d) { return d.id; })
-            .attr("class", function(d) { return "node "+d.class; });
-
-        nodeEnter.filter(function(d){ return d.class === "user" })
-            .on("click", click);
-        nodeEnter.call(force.drag);
-        nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
+            .attr("class", function(d) { return "node "+d.class; })
+            .call(force.drag);
+        
+        var circle = nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
             .append("circle")
 	      	.attr("r",  function(d) { return getR(d)+6; })
 	      	.attr("fill", "#fff")
 	      	.attr("cx", function(d){ return d.class === "orga" ? 5 : 2})
 			.attr("cy", function(d){ return d.class === "orga" ? 5 : 2});
+            
+        circle.filter(function(d){ return d.class === "user" })
+            .on("click", click);
 
 	    nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })  	
         	.append("circle")
