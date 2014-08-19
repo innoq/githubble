@@ -121,7 +121,12 @@ object Users extends Controller {
     val singleOrgTransformer = (
       copyField("label", "login") and
       put("class", "orga") and
-      mapId("orga")) reduce
+      mapId("orga") and
+      (__ \ 'avatar).json.copyFrom((__ \ 'avatar_url).json.pick.map {
+          case JsString(s) => JsString(s + "&s=64")
+          case _@ other => other
+        })
+    ) reduce
     
     val orgsTransformer = (__ \ 'organizations_url).read(arrayRead(singleOrgTransformer))
 

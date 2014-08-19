@@ -196,31 +196,15 @@ class UsersSpec extends PlaySpec  {
       (nodes(2) \ "id").as[String]  must equal ("orga_107424")
       (nodes(2) \ "label").as[String]  must equal ("jenkinsci")
       (nodes(2) \ "class").as[String] must equal ("orga")
-      
+      (nodes(2) \ "avatar").as[String] must equal ("https://avatars.githubusercontent.com/u/107424?v=2&s=64")     
+
+      // No my fellow follower      
       (nodes(3) \ "id").as[String]  must equal ("user_874148")
       (nodes(3) \ "label").as[String]  must equal ("simono")
       (nodes(3) \ "class").as[String] must equal ("user")
       (nodes(3) \ "avatar").as[String] must equal ("https://avatars.githubusercontent.com/u/874148?v=2&s=64")
-      // No my fellow follower
+
       
-      /*
-"login": "simono",
-	    "id": 874148,
-	    "avatar_url": "https://avatars.githubusercontent.com/u/874148?v=2",
-	    "gravatar_id": "8fddc92f5a3e278496e2fce9293f25ac",
-	    "url": "https://api.github.com/users/simono",
-	    "html_url": "https://github.com/simono",
-	    "followers_url": "https://api.github.com/users/simono/followers",
-	    "following_url": "https://api.github.com/users/simono/following{/other_user}",
-	    "gists_url": "https://api.github.com/users/simono/gists{/gist_id}",
-	    "starred_url": "https://api.github.com/users/simono/starred{/owner}{/repo}",
-	    "subscriptions_url": "https://api.github.com/users/simono/subscriptions",
-	    "organizations_url": "https://api.github.com/users/simono/orgs",
-	    "repos_url": "https://api.github.com/users/simono/repos",
-	    "events_url": "https://api.github.com/users/simono/events{/privacy}",
-	    "received_events_url": "https://api.github.com/users/simono/received_events",
-	    "type": "User",
-	    "site_admin": false*/      
       val links = (result \ "links").as[JsArray]
       (links(0) \ "class").as[String] must equal("owns")
       (links(0) \ "source").as[Int] must equal(0)
