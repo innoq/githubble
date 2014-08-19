@@ -54,7 +54,10 @@ object Users extends Controller {
  
  
   def copyField (name : String) : Reads[JsObject] = {
-     (__ \  name ).json.copyFrom( (__ \ name).json.pick ) 
+     (__ \  name ).json.copyFrom(Reads.nullable[JsString]( (__ \ name)).map {       
+     	case Some(s) => s      	
+        case _ => JsString("")
+     })
   }
 
   def copyField (to : String, from : String) : Reads[JsObject] = {
@@ -122,10 +125,11 @@ object Users extends Controller {
     
     val orgsTransformer = (__ \ 'organizations_url).read(arrayRead(singleOrgTransformer))
 
+    val followersTransformer = (__ \ 'followers_url).read(arrayRead(userTransformer))
     val userAsSingleSeq = userTransformer.map { js => JsArray(Seq(js)) }
 
-    val nodesAsArrayTransformer =  (userAsSingleSeq and reposTransformer and orgsTransformer).reduce 
-    val nodes = (__ \ "nodes").json.copyFrom(nodesAsArrayTransformer)
+    val nodesWithoutUserAsArrayTransformer =  (reposTransformer and orgsTransformer and followersTransformer).reduce 
+    val nodes = (__ \ "nodes").json.copyFrom((userAsSingleSeq and nodesWithoutUserAsArrayTransformer) reduce)
     
       val singleRepoToLinkTransformer =
       (
@@ -134,7 +138,7 @@ object Users extends Controller {
         put("source", 0)) reduce
 
     // A link from the user to each repo
-    val linksArrayTransformer = nodesAsArrayTransformer.map({ node =>
+    val linksArrayTransformer = nodesWithoutUserAsArrayTransformer.map({ node =>
       JsArray(node.value.zipWithIndex.map {
         case (repo, idx) =>
           repo.transform(
