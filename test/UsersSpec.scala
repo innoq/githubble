@@ -11,6 +11,7 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import service.GitHubResource
+import service.RateInfo
 
 
 
@@ -173,7 +174,7 @@ class UsersSpec extends PlaySpec  {
   "Users" should {
 
     "map github User correctly" in {
-      val result = Users.gitHubUserToOutput(GitHubResource(gitHubJson ) )
+      val result = Users.gitHubUserToOutput(GitHubResource(Some(gitHubJson),true,RateInfo(0,0,0) ) )
       System.out.println("Result is: " + Json.prettyPrint(result))
       // mus be an array
 
@@ -220,52 +221,7 @@ class UsersSpec extends PlaySpec  {
       (links(2) \ "source").as[Int] must equal(0)
       (links(2) \ "target").as[Int] must equal(3)
       (links(2) \ "value").as[Int] must equal(1)      
-      
-// TODO: Check links
-      
-      /*
-{
-  "nodes":[
-    {"label":"phaus", "class":"user", "id":"u1", "avatar":"https://avatars.githubusercontent.com/u/346361?v=2&s=64"},
-    {"label":"phaus/agora", "class":"repo", "id":"r1"},
-	{"label":"phaus/aibe", "class":"repo", "id":"r2"},
-	{"label":"phaus/annotate", "class":"repo", "id":"r3"},
-	{"label":"phaus/AQGridView", "class":"repo", "id":"r4"},
-    {"label":"phaus/balancr", "class":"repo", "id":"r5"},
-    {"label":"phaus/Bombbear", "class":"repo", "id":"r6"},
-	{"label":"phaus/ChatLogConverter", "class":"repo", "id":"r7"},
-	{"label":"phaus/contrib", "class":"repo", "id":"r8"},
-	{"label":"phaus/dash", "class":"repo", "id":"r9"},
-    {"label":"phaus/DiabloMiner", "class":"repo", "id":"r10"},
-    {"label":"martinei", "class":"user", "id":"u2", "avatar":"https://avatars.githubusercontent.com/u/795323?v=2&s=64"},
-    {"label":"FND", "class":"user", "id":"u3", "avatar":"https://avatars.githubusercontent.com/u/3515?v=2&s=64"},
-    {"label":"aheusingfeld", "class":"user", "id":"u4", "avatar":"https://avatars.githubusercontent.com/u/534272?v=2&s=64"},
-    {"label":"aheusingfeld.github.io", "class":"repo", "id":"r11"},
-    {"label":"aheusingfeld/aim42", "class":"repo", "id":"r12"},    
-    {"label":"consolving", "class":"orga", "id":"381849", "avatar":"https://avatars.githubusercontent.com/u/3236400?v=2&s=64"},   
-    {"label":"innoQ", "class":"orga", "id":"3236400", "avatar":"https://avatars.githubusercontent.com/u/381849?v=2&s=64"}       
-  ],
-  "links":[
-    {"source":1,"target":0,"value":1, "class":"owns"},
-    {"source":2,"target":0,"value":8, "class":"owns"},
-    {"source":3,"target":0,"value":8, "class":"owns"},
-    {"source":4,"target":0,"value":8, "class":"owns"},
-    {"source":5,"target":0,"value":1, "class":"owns"},
-    {"source":6,"target":0,"value":1, "class":"owns"},
-    {"source":7,"target":0,"value":8, "class":"owns"},
-    {"source":8,"target":0,"value":8, "class":"owns"},
-    {"source":9,"target":0,"value":8, "class":"owns"},
-    {"source":10,"target":0,"value":8, "class":"owns"},
 
-    {"source":11,"target":0,"value":8, "class":"follows"},
-    {"source":12,"target":0,"value":8, "class":"follows"},
-    {"source":13,"target":0,"value":8, "class":"follows"},
-    {"source":14,"target":13,"value":8, "class":"owns"},
-    {"source":15,"target":13,"value":8, "class":"owns"},    
-    {"source":16,"target":0,"value":8, "class":"member"},  
-    {"source":17,"target":0,"value":8, "class":"member"}        
-  ]
-}       */
     }
   }
   
