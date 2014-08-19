@@ -1,5 +1,5 @@
-var h=1080,
-	w=1920,
+var h=1024,
+	w=1024,
 	r=50;
 var radius = {
 	"user" : 32,
@@ -9,9 +9,9 @@ var force = d3.layout.force()
     .charge(-1000)
     .linkDistance(function(link) {
 			return link.class === "owns" ? 
-				250 : 
+				300 : 
 				link.class === "member" ? 
-					400 : 
+					150 : 
 					500;
 	})
     .gravity(0.05)
@@ -83,9 +83,11 @@ function update(){
 
     	var nodeEnter = node.enter().append("g")
             .attr("id", function(d) { return d.id; })
-            .attr("class", function(d) { return "node "+d.class; })
-            .call(force.drag);
+            .attr("class", function(d) { return "node "+d.class; });
 
+        nodeEnter.filter(function(d){ return d.class === "user" })
+            .on("click", click);
+        nodeEnter.call(force.drag);
         nodeEnter.filter(function(d){ return d.class === "orga" || d.class === "user" })
             .append("circle")
 	      	.attr("r",  function(d) { return getR(d)+6; })
@@ -136,6 +138,7 @@ function update(){
 	  	});	
 	});
 }
+
 function updatePattern(nodes) {
     pattern = pattern.data(nodes.filter(function(d) {
         return d.class === "user" || d.class === "orga";
@@ -171,6 +174,17 @@ function updatePattern(nodes) {
                 return "";
             }
         });
+}
+
+// change Context onClick
+function click(d) {
+    console.log("click");
+    if (!d3.event.defaultPrevented) {
+        if (d.class === "user") {
+            var parts = window.location.href.split("?");       
+            window.location.href = parts[0]+"?user&"+d.label;
+        }
+    }
 }
 
 function addEvent(element, evnt, funct){
