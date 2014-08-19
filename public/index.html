@@ -44,7 +44,7 @@
 			<select id="ui.type" name="type"></select>
 			<input id="ui.submit" type="submit" value="query" />
 		</div>
-	    <script src="http://d3js.org/d3.v3.min.js"></script>
+	    <script src="/assets/javascripts/d3.v3.min.js"></script>
 	    <script>
 	    	var h=1080,
 	    		w=1920,
@@ -84,7 +84,6 @@
 	        		var option = document.createElement("option");
 	        		option.text = entry;
 	        		option.value = entry;
-	        		console.log("entry "+entry);
 	        		typeSelect.appendChild(option);
 	        		if(entry === type){
 	        			typeSelect[i].selected = true;
