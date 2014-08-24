@@ -99,7 +99,7 @@ function updateStatus(status){
     	var time = makeTime(status.reset);
     	statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+time.full;   	
    	}
-   	statusUI.hidden=false;
+   	statusUI.style.display = "block";
 }
 
 function updateHistory(history){
@@ -116,7 +116,7 @@ function updateHistory(history){
 		out.appendChild(li);
 	}
 	historyUI.appendChild(out);
-	historyUI.hidden=false;
+	historyUI.style.display = "block";
 }
 
 function updateLegend(){
@@ -131,7 +131,7 @@ function updateLegend(){
 	if(type === "repo"){
 		legendUI.innerHTML = " ((( repo ) forks ) contributors )";
 	}	
-	legendUI.hidden=false;	
+	legendUI.style.display = "block";	
 }
 
 function update(){
