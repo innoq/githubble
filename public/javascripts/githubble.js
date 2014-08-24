@@ -23,11 +23,11 @@ var svg = d3.select("body").append("svg")
 svg.append("defs").attr("id", "defs");
 var pattern = d3.select("defs").selectAll(".pattern");
 var types = ["user", "repo", "orga"];
-var user = "";
+var value = "";
 var type = "user";
 
 function setup(){
-	document.getElementById("ui.value").value = user;
+	document.getElementById("ui.value").value = value;
 	var typeSelect = document.getElementById("ui.type");
 	var i = 0;
 	types.forEach(function(entry) {
@@ -67,7 +67,7 @@ function detectUrl(){
 	if(parts.length > 1){
 		parts = parts[1].split("=");
 		if(parts.length > 1){
-			user = parts[1];
+			value = parts[1];
 			type = parts[0];
 		}
 	}
@@ -98,8 +98,14 @@ function updateStatus(status){
 }
 
 function update(){
-	var path = usersControllerPath.replace(":user", user);
 	//var path = "/assets/test.json"
+	var path = "";
+	if(type === "repo"){
+		path = reposControllerPath.replace(":repo", encodeURIComponent(value));
+	} else {
+		path = usersControllerPath.replace(":user", encodeURIComponent(value));	
+	}
+
 	console.log("call backend with "+path);
 	d3.json(path, function(error, graph) {
         if (error) {

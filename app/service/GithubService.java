@@ -41,9 +41,36 @@ public class GithubService {
 							public Promise<ObjectNode> apply(final WSResponse reposResult) {
 								return orgasCall.map(new Function<WSResponse, ObjectNode>() {
 									public ObjectNode apply(final WSResponse orgasResult) {
-										return combineResults(result, followerResult, reposResult, orgasResult);
+										return combineUserResults(result, followerResult, reposResult, orgasResult);
 									}
 								});
+							}
+						});
+					}
+				});
+			}
+		});
+	}
+
+	public static Promise<ObjectNode> getRepo(String reponame) {
+		String url = GITHUB_API_URL + "/repos/" + reponame;
+		Logger.debug("calling: " + url);
+		return WS.url(url).get().flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
+			@Override
+			public Promise<ObjectNode> apply(final WSResponse response) {
+				Logger.debug("status: " + response.getStatus() + " content:\n" + response.getBody());
+				JsonNode json = response.asJson(); // Json.parse(DUMMY_USER);
+													// //response.asJson();
+				final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
+				final ObjectNode result = mapNode(json, newResult);
+				final Promise<WSResponse> contributorsCall = WS.url(getEntry(json, "contributors_url")).get();
+				final Promise<WSResponse> forksCall = WS.url(getEntry(json, "forks_url")).get();
+				return contributorsCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
+					@Override
+					public Promise<ObjectNode> apply(final WSResponse contributorsResult) {
+						return forksCall.map(new Function<WSResponse, ObjectNode>() {
+							public ObjectNode apply(final WSResponse forksResult) {
+								return combineRepoResults(result, contributorsResult, forksResult);
 							}
 						});
 					}
@@ -76,6 +103,9 @@ public class GithubService {
 		if (getEntry(json, "git_url").startsWith("git")) {
 			root.put("label", getEntry(json, "full_name"));
 			root.put("id", "r" + getEntry(json, "id"));
+			root.put("fork", getEntry(json, "fork"));
+			root.put("description", getEntry(json, "description"));
+			root.put("clone_url", getEntry(json, "clone_url"));
 			root.put("class", "repo");
 			root.put("name", getEntry(json, "name"));
 		}
@@ -106,7 +136,31 @@ public class GithubService {
 		return result;
 	}
 
-	private static ObjectNode combineResults(ObjectNode result, WSResponse followerResult, WSResponse reposResult,
+	private static ObjectNode combineRepoResults(ObjectNode result, WSResponse contributorsCall, WSResponse forksCall) {
+		JsonNode element;
+		if (contributorsCall != null) {
+			JsonNode json = contributorsCall.asJson();
+			Iterator<JsonNode> elements = json.elements();
+			while (elements.hasNext()) {
+				element = elements.next();
+				result = mapNode(element, result);
+				result = mapLink(json, result, "owns");
+			}
+		}
+
+		if (forksCall != null) {
+			JsonNode json = forksCall.asJson();
+			Iterator<JsonNode> elements = json.elements();
+			while (elements.hasNext()) {
+				element = elements.next();
+				result = mapNode(element, result);
+				result = mapLink(json, result, "member");
+			}
+		}
+		return result;
+	}
+
+	private static ObjectNode combineUserResults(ObjectNode result, WSResponse followerResult, WSResponse reposResult,
 			WSResponse orgasResult) {
 		JsonNode element;
 		if (followerResult != null) {
