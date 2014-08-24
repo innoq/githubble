@@ -15,26 +15,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class GithubService {
 	private final static String GITHUB_API_URL = "https://api.github.com";
-
-	private final static String DUMMY_USER = "{\n" + "\"login\": \"phaus\",\n" + "\"id\": 346361,\n"
-			+ "\"avatar_url\": \"https://avatars.githubusercontent.com/u/346361?v=2\",\n"
-			+ "\"gravatar_id\": \"902a4faaa4de6f6aebd6fd7a9fbab46a\",\n"
-			+ "\"url\": \"https://api.github.com/users/phaus\",\n" + "\"html_url\": \"https://github.com/phaus\",\n"
-			+ "\"followers_url\": \"https://api.github.com/users/phaus/followers\",\n"
-			+ "\"following_url\": \"https://api.github.com/users/phaus/following{/other_user}\",\n"
-			+ "\"gists_url\": \"https://api.github.com/users/phaus/gists{/gist_id}\",\n"
-			+ "\"starred_url\": \"https://api.github.com/users/phaus/starred{/owner}{/repo}\",\n"
-			+ "\"subscriptions_url\": \"https://api.github.com/users/phaus/subscriptions\",\n"
-			+ "\"organizations_url\": \"https://api.github.com/users/phaus/orgs\",\n"
-			+ "\"repos_url\": \"https://api.github.com/users/phaus/repos\",\n"
-			+ "\"events_url\": \"https://api.github.com/users/phaus/events{/privacy}\",\n"
-			+ "\"received_events_url\": \"https://api.github.com/users/phaus/received_events\",\n"
-			+ "\"type\": \"User\",\n" + "\"site_admin\": false,\n" + "\"name\": \"Philipp Haussleiter\",\n"
-			+ "\"company\": \"\",\n" + "\"blog\": \"http://philipp.haussleiter.de\",\n"
-			+ "\"location\": \"Germany\",\n" + "\"email\": \"philipp@haussleiter.de\",\n" + "\"hireable\": false,\n"
-			+ "\"bio\": null,\n" + "\"public_repos\": 63,\n" + "\"public_gists\": 13,\n" + "\"followers\": 14,\n"
-			+ "\"following\": 26,\n" + "\"created_at\": \"2010-07-27T23:58:18Z\",\n"
-			+ "\"updated_at\": \"2014-08-22T23:53:02Z\"\n" + "}";
 	private final static String X_RATE_LIMIT_HEADER = "X-RateLimit-Limit";
 	private final static String X_RATE_REMAIN_HEADER = "X-RateLimit-Remaining";
 	private final static String X_RATE_RESET_HEADER = "X-RateLimit-Reset";
@@ -49,7 +29,7 @@ public class GithubService {
 				JsonNode json = response.asJson(); // Json.parse(DUMMY_USER);
 													// //response.asJson();
 				final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
-				final ObjectNode result = mapUser(json, newResult);
+				final ObjectNode result = mapNode(json, newResult);
 				final Promise<WSResponse> followerCall = WS.url(getEntry(json, "followers_url")).get();
 				final Promise<WSResponse> reposCall = WS.url(getEntry(json, "repos_url")).get();
 				final Promise<WSResponse> orgasCall = WS.url(getEntry(json, "organizations_url")).get();
@@ -81,10 +61,9 @@ public class GithubService {
 		return result;
 	}
 
-	private static ObjectNode mapUser(JsonNode json, final ObjectNode result) {
+	private static ObjectNode mapNode(JsonNode json, final ObjectNode result) {
 		Logger.debug("json: " + Json.stringify(json));
 		ArrayNode nodes = (ArrayNode) (result.get("nodes") != null ? result.path("nodes") : result.arrayNode());
-		ArrayNode links = (ArrayNode) (result.get("links") != null ? result.path("links") : result.arrayNode());
 		ObjectNode root = result.objectNode();
 		if (getEntry(json, "type").equals("User")) {
 			root.put("label", getEntry(json, "login"));
@@ -93,8 +72,36 @@ public class GithubService {
 			root.put("name", getEntry(json, "name"));
 			root.put("avatar", getEntry(json, "avatar_url") + "&s=64");
 		}
+
+		if (getEntry(json, "git_url").startsWith("git")) {
+			root.put("label", getEntry(json, "full_name"));
+			root.put("id", "r" + getEntry(json, "id"));
+			root.put("class", "repo");
+			root.put("name", getEntry(json, "name"));
+		}
+
+		if (getEntry(json, "public_members_url").startsWith("https")) {
+			root.put("label", getEntry(json, "login"));
+			root.put("id", "o" + getEntry(json, "id"));
+			root.put("class", "orga");
+			root.put("name", getEntry(json, "name"));
+			root.put("avatar", getEntry(json, "avatar_url") + "&s=64");
+		}
 		nodes.add(root);
 		result.put("nodes", nodes);
+
+		return result;
+	}
+
+	private static ObjectNode mapLink(JsonNode json, final ObjectNode result, String type) {
+		ArrayNode links = (ArrayNode) (result.get("links") != null ? result.path("links") : result.arrayNode());
+		ArrayNode nodes = (ArrayNode) (result.get("nodes") != null ? result.path("nodes") : result.arrayNode());
+		ObjectNode link = result.objectNode();
+		link.put("value", 1);
+		link.put("class", type);
+		link.put("source", 0);
+		link.put("target", nodes.size() - 1);
+		links.add(link);
 		result.put("links", links);
 		return result;
 	}
@@ -106,7 +113,28 @@ public class GithubService {
 			JsonNode json = followerResult.asJson();
 			Iterator<JsonNode> elements = json.elements();
 			while (elements.hasNext()) {
-				elements.next();
+				element = elements.next();
+				result = mapNode(element, result);
+				result = mapLink(json, result, "follows");
+			}
+		}
+		if (reposResult != null) {
+			JsonNode json = reposResult.asJson();
+			Iterator<JsonNode> elements = json.elements();
+			while (elements.hasNext()) {
+				element = elements.next();
+				result = mapNode(element, result);
+				result = mapLink(json, result, "owns");
+			}
+		}
+
+		if (orgasResult != null) {
+			JsonNode json = orgasResult.asJson();
+			Iterator<JsonNode> elements = json.elements();
+			while (elements.hasNext()) {
+				element = elements.next();
+				result = mapNode(element, result);
+				result = mapLink(json, result, "member");
 			}
 		}
 		return result;
@@ -118,7 +146,7 @@ public class GithubService {
 		if (child != null) {
 			return child.isTextual() ? child.textValue() : String.valueOf(child.intValue());
 		}
-		return null;
+		return "";
 	}
 
 }
