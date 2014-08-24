@@ -30,6 +30,10 @@ line.link {
 	padding: 5px;
 }
 
+.historyLink {
+    cursor: pointer;
+}
+
 #query {
 	top: 20px;
 	left: 20px;

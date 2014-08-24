@@ -103,13 +103,18 @@ function updateStatus(status){
 
 function updateHistory(history){
 	var historyUI = document.getElementById("history");
-	// TODO do this in a proper way, innerHTML is EVIL.
-	var out = "<ul>";
+	var out = document.createElement("ul");
 	for (var i in history) {
-		out += "<li>"+history[i]+"</li>";
+		var li = document.createElement("li");
+		li.setAttribute("class", "historyLink");
+    	addEvent(li, 'click', function(){
+    		var kv = history[i].split("/");
+    		var parts = window.location.href.split("?");
+    		window.location.href = parts[0]+"?"+kv[0]+"="+kv[1];    		
+    	});		
+		out.appendChild(li);
 	}
-	out += "</ul>";
-	historyUI.innerHTML = out;
+	historyUI.appendChild(out);;
 }
 
 function updateLegend(){
