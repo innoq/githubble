@@ -32,6 +32,7 @@ line.link {
 
 .historyLink {
     cursor: pointer;
+    list-style-type: none;
 }
 
 #query {

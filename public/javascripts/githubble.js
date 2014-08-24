@@ -108,6 +108,7 @@ function updateHistory(history){
 	for (var i in history) {
 		var li = document.createElement("li");
 		li.setAttribute("class", "historyLink");
+		li.innerHTML = history[i];
     	addEvent(li, 'click', function(){
     		var kv = history[i].split("/");
     		var parts = window.location.href.split("?");
