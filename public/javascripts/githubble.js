@@ -94,20 +94,36 @@ function handleError(error) {
 
 function updateStatus(status){
     var statusUI = document.getElementById("status");
+   	// TODO do this in a proper way, innerHTML is EVIL.
    	if(status) {
     	var time = makeTime(status.reset);
     	statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+time.full;   	
    	}
 }
 
+function updateHistory(history){
+	var historyUI = document.getElementById("history");
+	// TODO do this in a proper way, innerHTML is EVIL.
+	var out = "<ul>";
+	for (var i in history) {
+		out += "<li>"+history[i]+"</li>";
+	}
+	out += "</ul>";
+	historyUI.innerHTML = out;
+}
+
 function updateLegend(){
 	var legendUI = document.getElementById("legend");
+	// TODO do this in a proper way, innerHTML is EVIL.
 	if(type === "user"){
-		legendUI.innerHTML = "<h2>User</h2>[user ... orgas...repos...followers]";
+		legendUI.innerHTML = " (((( user ) orgas ) repos ) followers )";
 	}
 	if(type === "orga"){
-		legendUI.innerHTML = "<h2>Organisation</h2>[user ... orga...repos...followers]";
+		legendUI.innerHTML = " (((  orga ) repos ) members )";
 	}	
+	if(type === "repo"){
+		legendUI.innerHTML = " ((( repo ) forks ) contributors )";
+	}		
 }
 
 function update(){
@@ -129,6 +145,11 @@ function update(){
 		console.log("nodes count "+graph.nodes.length);
 	  	console.log("links count "+graph.links.length);
         updateStatus(graph.status);
+		
+		d3.json(historyControllerPath, function(error, history) {
+			updateHistory(history);
+		});
+		
 		updateLegend();
 	  	force
 	      .nodes(graph.nodes)

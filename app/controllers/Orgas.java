@@ -2,15 +2,17 @@ package controllers;
 
 import play.libs.F.Function;
 import play.libs.F.Promise;
-import play.mvc.Controller;
 import play.mvc.Result;
 import service.GithubService;
+import service.HistoryService;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Orgas extends Controller {
+public class Orgas  extends Application {
 	
 	public static Promise<Result> show(String organame){
+		String uuid =  getSessionId();
+		HistoryService.addSessionHistoryEntry(uuid, "orgas/"+organame);
 		return GithubService.getOrga(organame).map(new Function<ObjectNode, Result>(){
 			@Override
 			public Result apply(ObjectNode resultNode) {

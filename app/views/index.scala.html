@@ -22,9 +22,11 @@
 	
 	<script type="text/javascript" src="@routes.Assets.at("javascripts/d3.v3.min.js")"></script>
 	<script type="text/javascript">
+		// TODO make URLs non static
 		var usersControllerPath = "@routes.Users.show(":user")";
 		var reposControllerPath = "@routes.Repos.show(":repo")";
-		var orgasControllerPath = "@routes.Orgas.show(":orga")";				
+		var orgasControllerPath = "@routes.Orgas.show(":orga")";
+		var historyControllerPath = "@routes.History.index()";				
 	</script>
 	<script type="text/javascript" src="@routes.Assets.at("javascripts/githubble.js")"></script>
 	<script type="text/javascript">

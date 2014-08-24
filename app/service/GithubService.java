@@ -30,7 +30,7 @@ public class GithubService {
 				if (response.getStatus() == 200) {
 					final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
 					final ObjectNode result = mapNode(json, newResult);
-					final Promise<WSResponse> membersCall = WS.url(getEntry(json, "public_members_url")).get();
+					final Promise<WSResponse> membersCall = WS.url(getEntry(json, "public_members_url").replace("{/member}", "")).get();
 					final Promise<WSResponse> reposCall = WS.url(getEntry(json, "repos_url")).get();
 					return membersCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
 						@Override
