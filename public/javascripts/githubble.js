@@ -78,9 +78,12 @@ function handleError(error) {
     var warn = document.createElement("div");
     document.getElementById("status").hidden = true;
     document.getElementById("query").hidden = true;
+    document.getElementById("legend").hidden = true;
+    document.getElementById("history").hidden = true;
+    
     console.log(error.responseText);
     // TODO make this nicer and/or more secure?
-    var info = eval('('+error.responseText+')');
+    var info = eval('('+error.responseText+')').status;
     var time = makeTime(info.reset);
     warn.innerHTML = "<h2>Error performing your Request!</h2><br />All "+info.limit+" Calls were made.<br />please try again later!<br />(around "+time.full+")";
     warn.setAttribute("class", "ui");
@@ -97,13 +100,25 @@ function updateStatus(status){
    	}
 }
 
+function updateLegend(){
+	var legendUI = document.getElementById("legend");
+	if(type === "user"){
+		legendUI.innerHTML = "<h2>User</h2>[user ... orgas...repos...followers]";
+	}
+	if(type === "orga"){
+		legendUI.innerHTML = "<h2>Organisation</h2>[user ... orga...repos...followers]";
+	}	
+}
+
 function update(){
 	//var path = "/assets/test.json"
 	var path = "";
 	if(type === "repo"){
 		path = reposControllerPath.replace(":repo", encodeURIComponent(value));
+	} else if(type === "user"){
+		path = usersControllerPath.replace(":user", encodeURIComponent(value));		
 	} else {
-		path = usersControllerPath.replace(":user", encodeURIComponent(value));	
+		path = orgasControllerPath.replace(":orga", encodeURIComponent(value));	
 	}
 
 	console.log("call backend with "+path);
@@ -114,7 +129,7 @@ function update(){
 		console.log("nodes count "+graph.nodes.length);
 	  	console.log("links count "+graph.links.length);
         updateStatus(graph.status);
-
+		updateLegend();
 	  	force
 	      .nodes(graph.nodes)
 	      .links(graph.links)

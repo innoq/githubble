@@ -6,6 +6,7 @@
 GET     /                           controllers.Application.index()
 GET		/users/:username			controllers.Users.show(username: String)
 GET		/repos/:reponame			controllers.Repos.show(reponame: String)
+GET		/orgas/:organame			controllers.Orgas.show(organame: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

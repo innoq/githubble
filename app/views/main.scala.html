@@ -5,59 +5,9 @@
 <html>
     <head>
         <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-		<meta charset="utf-8">
-		<style>
-		    .node circle {
-		        cursor: pointer;
-		        stroke: #3182bd;
-		        stroke-width: 1.5px;
-		    }
-
-		    .node text {
-		        font: 14px sans-serif;
-		        pointer-events: none;
-		        text-anchor: middle;
-		    }
-
-		    line.link {
-		        fill: none;
-		        stroke: #9ecae1;
-		        stroke-width: 1.5px;
-		    }
-		    .avatar {
-		        border-radius: 20px;
-		    }	
-		    .ui {
-		    	position: fixed;
-		    	background-color: #fff;
-				opacity: .8;
-				filter: alpha(opacity=80);
-				-moz-opacity: .8;		 
-				-webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
-				-moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
-				box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);	
-				padding: 5px;
-			}
-			#query {
-		    	top: 20px;
-		    	left: 20px;
-		    }	
-			
-			#status {
-		    	top: 20px;
-		    	right: 20px;
-		    }
-
-		    #warn {
-		    	text-align: center;
-		    	color: white;
-		    	background-color: crimson;
-		    	top:100px;
-		    	left: 20px;
-		    }
-		</style>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")" />
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")" />
+		<meta charset="utf-8" />
     </head>
     <body>
         @content

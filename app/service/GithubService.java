@@ -19,6 +19,38 @@ public class GithubService {
 	private final static String X_RATE_REMAIN_HEADER = "X-RateLimit-Remaining";
 	private final static String X_RATE_RESET_HEADER = "X-RateLimit-Reset";
 
+	public static Promise<ObjectNode> getOrga(String organame) {
+		String url = GITHUB_API_URL + "/orgs/" + organame;
+		Logger.debug("calling: " + url);
+		return WS.url(url).get().flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
+			@Override
+			public Promise<ObjectNode> apply(final WSResponse response) {
+				Logger.debug("status: " + response.getStatus() + " content:\n" + response.getBody());
+				JsonNode json = response.asJson(); // Json.parse(DUMMY_USER);
+				if (response.getStatus() == 200) {
+					final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
+					final ObjectNode result = mapNode(json, newResult);
+					final Promise<WSResponse> membersCall = WS.url(getEntry(json, "public_members_url")).get();
+					final Promise<WSResponse> reposCall = WS.url(getEntry(json, "repos_url")).get();
+					return membersCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
+						@Override
+						public Promise<ObjectNode> apply(final WSResponse membersResult) {
+							return reposCall.map(new Function<WSResponse, ObjectNode>() {
+								public ObjectNode apply(final WSResponse reposResult) {
+									return combineOrgaResults(result, membersResult, reposResult);
+								}
+							});
+						}
+					});
+				} else {
+					final ObjectNode result = mapRateLimitStatus(response, Json.newObject());
+					result.put("error", json);
+					return Promise.pure(result);
+				}
+			}
+		});
+	}
+
 	public static Promise<ObjectNode> getUser(String username) {
 		String url = GITHUB_API_URL + "/users/" + username;
 		Logger.debug("calling: " + url);
@@ -27,27 +59,32 @@ public class GithubService {
 			public Promise<ObjectNode> apply(final WSResponse response) {
 				Logger.debug("status: " + response.getStatus() + " content:\n" + response.getBody());
 				JsonNode json = response.asJson(); // Json.parse(DUMMY_USER);
-													// //response.asJson();
-				final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
-				final ObjectNode result = mapNode(json, newResult);
-				final Promise<WSResponse> followerCall = WS.url(getEntry(json, "followers_url")).get();
-				final Promise<WSResponse> reposCall = WS.url(getEntry(json, "repos_url")).get();
-				final Promise<WSResponse> orgasCall = WS.url(getEntry(json, "organizations_url")).get();
-				return followerCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
-					@Override
-					public Promise<ObjectNode> apply(final WSResponse followerResult) {
-						return reposCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
-							@Override
-							public Promise<ObjectNode> apply(final WSResponse reposResult) {
-								return orgasCall.map(new Function<WSResponse, ObjectNode>() {
-									public ObjectNode apply(final WSResponse orgasResult) {
-										return combineUserResults(result, followerResult, reposResult, orgasResult);
-									}
-								});
-							}
-						});
-					}
-				});
+				if (response.getStatus() == 200) {
+					final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
+					final ObjectNode result = mapNode(json, newResult);
+					final Promise<WSResponse> followerCall = WS.url(getEntry(json, "followers_url")).get();
+					final Promise<WSResponse> reposCall = WS.url(getEntry(json, "repos_url")).get();
+					final Promise<WSResponse> orgasCall = WS.url(getEntry(json, "organizations_url")).get();
+					return followerCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
+						@Override
+						public Promise<ObjectNode> apply(final WSResponse followerResult) {
+							return reposCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
+								@Override
+								public Promise<ObjectNode> apply(final WSResponse reposResult) {
+									return orgasCall.map(new Function<WSResponse, ObjectNode>() {
+										public ObjectNode apply(final WSResponse orgasResult) {
+											return combineUserResults(result, followerResult, reposResult, orgasResult);
+										}
+									});
+								}
+							});
+						}
+					});
+				} else {
+					final ObjectNode result = mapRateLimitStatus(response, Json.newObject());
+					result.put("error", json);
+					return Promise.pure(result);
+				}
 			}
 		});
 	}
@@ -60,21 +97,26 @@ public class GithubService {
 			public Promise<ObjectNode> apply(final WSResponse response) {
 				Logger.debug("status: " + response.getStatus() + " content:\n" + response.getBody());
 				JsonNode json = response.asJson(); // Json.parse(DUMMY_USER);
-													// //response.asJson();
-				final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
-				final ObjectNode result = mapNode(json, newResult);
-				final Promise<WSResponse> contributorsCall = WS.url(getEntry(json, "contributors_url")).get();
-				final Promise<WSResponse> forksCall = WS.url(getEntry(json, "forks_url")).get();
-				return contributorsCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
-					@Override
-					public Promise<ObjectNode> apply(final WSResponse contributorsResult) {
-						return forksCall.map(new Function<WSResponse, ObjectNode>() {
-							public ObjectNode apply(final WSResponse forksResult) {
-								return combineRepoResults(result, contributorsResult, forksResult);
-							}
-						});
-					}
-				});
+				if (response.getStatus() == 200) {
+					final ObjectNode newResult = mapRateLimitStatus(response, Json.newObject());
+					final ObjectNode result = mapNode(json, newResult);
+					final Promise<WSResponse> contributorsCall = WS.url(getEntry(json, "contributors_url")).get();
+					final Promise<WSResponse> forksCall = WS.url(getEntry(json, "forks_url")).get();
+					return contributorsCall.flatMap(new Function<WSResponse, Promise<ObjectNode>>() {
+						@Override
+						public Promise<ObjectNode> apply(final WSResponse contributorsResult) {
+							return forksCall.map(new Function<WSResponse, ObjectNode>() {
+								public ObjectNode apply(final WSResponse forksResult) {
+									return combineRepoResults(result, contributorsResult, forksResult);
+								}
+							});
+						}
+					});
+				} else {
+					final ObjectNode result = mapRateLimitStatus(response, Json.newObject());
+					result.put("error", json);
+					return Promise.pure(result);
+				}
 			}
 		});
 	}
@@ -85,6 +127,7 @@ public class GithubService {
 		status.put("reset", response.getHeader(X_RATE_RESET_HEADER));
 		status.put("limit", response.getHeader(X_RATE_LIMIT_HEADER));
 		result.put("status", status);
+		result.put("http", response.getStatus());
 		return result;
 	}
 
@@ -133,6 +176,30 @@ public class GithubService {
 		link.put("target", nodes.size() - 1);
 		links.add(link);
 		result.put("links", links);
+		return result;
+	}
+
+	private static ObjectNode combineOrgaResults(ObjectNode result, WSResponse membersResult, WSResponse reposResult) {
+		JsonNode element;
+		if (reposResult != null) {
+			JsonNode json = reposResult.asJson();
+			Iterator<JsonNode> elements = json.elements();
+			while (elements.hasNext()) {
+				element = elements.next();
+				result = mapNode(element, result);
+				result = mapLink(json, result, "owns");
+			}
+		}
+
+		if (membersResult != null) {
+			JsonNode json = membersResult.asJson();
+			Iterator<JsonNode> elements = json.elements();
+			while (elements.hasNext()) {
+				element = elements.next();
+				result = mapNode(element, result);
+				result = mapLink(json, result, "member");
+			}
+		}
 		return result;
 	}
 
@@ -194,7 +261,7 @@ public class GithubService {
 		return result;
 	}
 
-	private static String getEntry(JsonNode node, String key) {
+	public static String getEntry(JsonNode node, String key) {
 		JsonNode child = node.path(key);
 		Logger.debug("key: " + key + " got: " + Json.stringify(child));
 		if (child != null) {

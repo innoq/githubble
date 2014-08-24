@@ -8,10 +8,10 @@ import service.GithubService;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Users extends Controller {
+public class Orgas extends Controller {
 	
-	public static Promise<Result> show(String username){
-		return GithubService.getUser(username).map(new Function<ObjectNode, Result>(){
+	public static Promise<Result> show(String organame){
+		return GithubService.getOrga(organame).map(new Function<ObjectNode, Result>(){
 			@Override
 			public Result apply(ObjectNode resultNode) {
 				// TODO int => String => int  not very nice :-/

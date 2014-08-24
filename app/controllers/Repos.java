@@ -17,7 +17,13 @@ public class Repos extends Controller {
 		return GithubService.getRepo(URLDecoder.decode(reponame, "UTF-8")).map(new Function<ObjectNode, Result>() {
 			@Override
 			public Result apply(ObjectNode resultNode) {
-				return ok(resultNode);
+				// TODO int => String => int  not very nice :-/
+				String http = GithubService.getEntry(resultNode, "http");
+				if(http.equals("200")) {
+					return ok(resultNode);					
+				} else {
+					return status(Integer.parseInt(http), resultNode);
+				}
 			}
 		});
 	}
