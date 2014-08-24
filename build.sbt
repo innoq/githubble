@@ -2,14 +2,13 @@ name := """githubble"""
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
 scalaVersion := "2.11.1"
 
 libraryDependencies ++= Seq(
-  jdbc,
-  anorm,
+  javaJdbc,
+  javaEbean,
   cache,
-  ws,
- "org.scalatestplus" %% "play" % "1.1.0" % "test"  
+  javaWs
 )

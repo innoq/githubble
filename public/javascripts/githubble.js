@@ -91,8 +91,10 @@ function handleError(error) {
 
 function updateStatus(status){
     var statusUI = document.getElementById("status");
-    var time = makeTime(status.reset);
-    statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+time.full;
+   	if(status) {
+    	var time = makeTime(status.reset);
+    	statusUI.innerHTML = status.remaining+" Calls remaining<br />until "+time.full;   	
+   	}
 }
 
 function update(){
