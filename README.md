@@ -30,3 +30,8 @@ for Repos: ((( repo ) forks ) contributors )
 for Orgas: (((  orga ) repos ) members )
 
 Because we are not using the GitHub API Pagination Methods (at the moment), we just displaying the Entries (Follower,Repos, Members) from the first Page.
+
+
+# Example View
+
+![Example View](images/example.png)
