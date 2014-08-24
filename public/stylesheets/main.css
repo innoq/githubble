@@ -43,16 +43,19 @@ line.link {
 	top: 125px;
 	left: 20px;
 	overflow:hidden;
+	visibility: hidden;
 }	
 
 #status {
 	top: 20px;
 	right: 20px;
+	visibility: hidden;
 }
 
 #legend {
 	left: 20px;
 	top: 75px;
+	visibility: hidden;
 }
 
 #warn {
