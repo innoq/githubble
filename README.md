@@ -15,7 +15,18 @@ Concepts are still in Development.
 Uses
 
 * d3.js
-* Play2 Scala
+* Play2 Java
 * public GitHub Api
 
 Started at innoQ Summer of Code 16./17. August 2014.
+
+
+# Concepts
+
+The orbital Display Methods is:
+
+for Users: (((( user ) orgas ) repos ) followers )
+for Repos: ((( repo ) forks ) contributors )
+for Orgas: (((  orga ) repos ) members )
+
+Because we are not using the GitHub API Pagination Methods (at the moment), we just displaying the Entries (Follower,Repos, Members) from the first Page.
