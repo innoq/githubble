@@ -15,7 +15,7 @@ public class Repos  extends Application {
 	// TODO handle exception :-)
 	public static Promise<Result> show(String reponame) throws UnsupportedEncodingException {
 		String uuid =  getSessionId();
-		HistoryService.addSessionHistoryEntry(uuid, "repos/"+reponame);
+		HistoryService.addSessionHistoryEntry(uuid, "repo/"+reponame);
 		return GithubService.getRepo(URLDecoder.decode(reponame, "UTF-8")).map(new Function<ObjectNode, Result>() {
 			@Override
 			public Result apply(ObjectNode resultNode) {

@@ -12,7 +12,7 @@ public class Orgas  extends Application {
 	
 	public static Promise<Result> show(String organame){
 		String uuid =  getSessionId();
-		HistoryService.addSessionHistoryEntry(uuid, "orgas/"+organame);
+		HistoryService.addSessionHistoryEntry(uuid, "orga/"+organame);
 		return GithubService.getOrga(organame).map(new Function<ObjectNode, Result>(){
 			@Override
 			public Result apply(ObjectNode resultNode) {

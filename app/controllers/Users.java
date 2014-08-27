@@ -12,7 +12,7 @@ public class Users  extends Application {
 	
 	public static Promise<Result> show(String username){
 		String uuid =  getSessionId();
-		HistoryService.addSessionHistoryEntry(uuid, "users/"+username);
+		HistoryService.addSessionHistoryEntry(uuid, "user/"+username);
 		return GithubService.getUser(username).map(new Function<ObjectNode, Result>(){
 			@Override
 			public Result apply(ObjectNode resultNode) {
